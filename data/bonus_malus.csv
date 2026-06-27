@@ -1,13 +1,2 @@
 id_personaggio,giorno,punti,descrizione,tipo
-EDU001,1,+3,Ha organizzato il gioco finale,bonus
-ANI004,1,+2,Miglior animatore del giorno,bonus
-ANI003,1,-1,In ritardo alla preghiera,malus
-PRE001,1,+2,Si è distinto nell'attività del pomeriggio,bonus
-AMC001,1,+3,Ha trascinato il gruppo con l'entusiasmo,bonus
-LEONI,1,+3,Ha vinto la gara squadre del pomeriggio,bonus
-EDU001,2,+2,Discorso serale commovente,bonus
-ANI001,2,+3,Ha guidato il gioco acquatico,bonus
-ANI002,2,-1,Dimenticato il materiale,malus
-PRE002,2,+1,Ha aiutato spontaneamente,bonus
-GECHI,2,+2,Miglior squadra nella gara di canto,bonus
-SQUALI,2,-1,Ultimi nella classifica giornaliera,malus
+
