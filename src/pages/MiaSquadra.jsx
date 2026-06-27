@@ -157,21 +157,24 @@ export default function MiaSquadra({ onModifica }) {
             <h2 className="squadra-nome">{utente?.['nome-squadra']}</h2>
             <p className="squadra-owner">di {utente?.proprietario}</p>
           </div>
-          {onModifica && (
-            <button className="btn-modifica-hero" onClick={onModifica} title="Modifica squadra">
-              ✏️ Modifica
-            </button>
-          )}
+          <div className="squadra-punteggio-right">
+            <span className="totale-num">{totale.toFixed(1)}</span>
+            <span className="totale-label">punti totali</span>
+          </div>
         </div>
         {squadraInfo && (
           <div className="squadra-oratorio-tag" style={{ background: squadraInfo.colore + '28', color: squadraInfo.colore, borderColor: squadraInfo.colore + '55' }}>
             {squadraInfo.emoji} {squadraInfo.label}
           </div>
         )}
-        <div className="squadra-hero-bottom">
-          <span className="totale-num">{totale.toFixed(1)}</span>
-          <span className="totale-label">punti totali</span>
-        </div>
+        {onModifica && (
+          <div className="squadra-hero-modifica">
+            <button className="btn-modifica-hero" onClick={onModifica} title="Modifica squadra">
+              ✏️ Modifica
+            </button>
+            <span className="modifica-hint">Puoi modificare la squadra entro martedì alle 8:00</span>
+          </div>
+        )}
       </div>
 
       {/* Formazione con bonus/malus integrati */}

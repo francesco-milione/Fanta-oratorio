@@ -1,4 +1,6 @@
 import React, { useState, useEffect } from 'react';
+import { useAuth } from '../context/AuthContext';
+import { supabase } from '../supabaseClient';
 
 const BASE = process.env.PUBLIC_URL || '';
 
@@ -32,10 +34,41 @@ function parseCSV(text) {
 }
 
 export default function Regolamento() {
+  const { utente } = useAuth();
   const [voci, setVoci] = useState([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
   const [ruoloAttivo, setRuoloAttivo] = useState('Educatore');
+  const [bannerVisible, setBannerVisible] = useState(() => {
+    return sessionStorage.getItem('reg_banner_closed') !== '1';
+  });
+  const [feedbackOpen, setFeedbackOpen] = useState(false);
+  const [feedbackTesto, setFeedbackTesto] = useState('');
+  const [feedbackStato, setFeedbackStato] = useState(null); // null | 'loading' | 'ok' | 'error'
+
+  const chiudiBanner = () => {
+    setBannerVisible(false);
+    sessionStorage.setItem('reg_banner_closed', '1');
+  };
+
+  const inviaFeedback = async () => {
+    if (!feedbackTesto.trim()) return;
+    setFeedbackStato('loading');
+    const { error } = await supabase.from('feedback').insert({
+      utente_codice: utente?.codice || 'anonimo',
+      testo: feedbackTesto.trim(),
+    });
+    if (error) {
+      setFeedbackStato('error');
+    } else {
+      setFeedbackStato('ok');
+      setFeedbackTesto('');
+      setTimeout(() => {
+        setFeedbackOpen(false);
+        setFeedbackStato(null);
+      }, 2000);
+    }
+  };
 
   useEffect(() => {
     fetch(`${BASE}/data/regolamento.csv?t=${Date.now()}`)
@@ -71,6 +104,125 @@ export default function Regolamento() {
         <h2>📋 Regolamento</h2>
         <p className="page-subtitle">Come si guadagnano (e perdono) i punti</p>
       </div>
+
+      {/* Banner "regole non ufficiali" */}
+      {bannerVisible && (
+        <div style={{
+          background: '#fef9c3',
+          border: '1px solid #fbbf24',
+          borderRadius: 12,
+          padding: '14px 16px',
+          marginBottom: 16,
+          display: 'flex',
+          alignItems: 'flex-start',
+          gap: 12,
+          position: 'relative',
+        }}>
+          <span style={{ fontSize: 20, flexShrink: 0 }}>⚠️</span>
+          <div style={{ flex: 1 }}>
+            <p style={{ margin: 0, fontSize: 14, color: '#78350f', fontWeight: 600 }}>
+              Queste non sono ancora le regole ufficiali!
+            </p>
+            <p style={{ margin: '4px 0 0', fontSize: 13, color: '#92400e' }}>
+              Il regolamento è ancora in definizione. Hai idee o suggerimenti?{' '}
+              <button
+                onClick={() => setFeedbackOpen(true)}
+                style={{ background: 'none', border: 'none', color: '#b45309', fontWeight: 700, cursor: 'pointer', textDecoration: 'underline', padding: 0, fontSize: 13 }}
+              >
+                Lascia un feedback
+              </button>
+              , lo leggeremo!
+            </p>
+          </div>
+          <button
+            onClick={chiudiBanner}
+            style={{ background: 'none', border: 'none', cursor: 'pointer', fontSize: 18, color: '#b45309', lineHeight: 1, padding: 0, flexShrink: 0 }}
+            title="Chiudi"
+          >
+            ✕
+          </button>
+        </div>
+      )}
+
+      {/* Form feedback inline */}
+      {feedbackOpen && (
+        <div style={{
+          background: 'var(--surface)',
+          border: '1px solid var(--border)',
+          borderRadius: 12,
+          padding: '16px',
+          marginBottom: 16,
+        }}>
+          <p style={{ margin: '0 0 10px', fontWeight: 600, fontSize: 14 }}>💬 Suggerisci una regola</p>
+          <textarea
+            value={feedbackTesto}
+            onChange={e => setFeedbackTesto(e.target.value)}
+            placeholder="Scrivi il tuo suggerimento..."
+            rows={3}
+            disabled={feedbackStato === 'loading' || feedbackStato === 'ok'}
+            style={{
+              width: '100%',
+              boxSizing: 'border-box',
+              borderRadius: 8,
+              border: '1px solid var(--border)',
+              padding: '10px 12px',
+              fontSize: 14,
+              background: 'var(--bg)',
+              color: 'var(--text)',
+              resize: 'vertical',
+            }}
+          />
+          <div style={{ display: 'flex', gap: 8, marginTop: 10, alignItems: 'center' }}>
+            <button
+              onClick={inviaFeedback}
+              disabled={!feedbackTesto.trim() || feedbackStato === 'loading' || feedbackStato === 'ok'}
+              style={{
+                background: '#f59e0b',
+                color: '#fff',
+                border: 'none',
+                borderRadius: 8,
+                padding: '8px 18px',
+                fontWeight: 700,
+                fontSize: 14,
+                cursor: 'pointer',
+                opacity: (!feedbackTesto.trim() || feedbackStato === 'loading' || feedbackStato === 'ok') ? 0.6 : 1,
+              }}
+            >
+              {feedbackStato === 'loading' ? '⏳ Invio…' : feedbackStato === 'ok' ? '✅ Inviato!' : '📤 Invia'}
+            </button>
+            <button
+              onClick={() => { setFeedbackOpen(false); setFeedbackTesto(''); setFeedbackStato(null); }}
+              style={{ background: 'none', border: '1px solid var(--border)', borderRadius: 8, padding: '8px 14px', fontSize: 14, cursor: 'pointer', color: 'var(--text-muted)' }}
+            >
+              Annulla
+            </button>
+            {feedbackStato === 'error' && (
+              <span style={{ fontSize: 13, color: '#ef4444' }}>Errore nell'invio, riprova.</span>
+            )}
+          </div>
+        </div>
+      )}
+
+      {/* Pulsante feedback (sempre visibile se banner chiuso) */}
+      {!bannerVisible && !feedbackOpen && (
+        <div style={{ marginBottom: 16, textAlign: 'right' }}>
+          <button
+            onClick={() => setFeedbackOpen(true)}
+            style={{
+              background: 'none',
+              border: '1px solid #fbbf24',
+              borderRadius: 8,
+              padding: '7px 14px',
+              fontSize: 13,
+              color: '#b45309',
+              cursor: 'pointer',
+              fontWeight: 600,
+            }}
+          >
+            💬 Suggerisci una regola
+          </button>
+        </div>
+      )}
 
       {/* Banner oratorio */}
       <div className="reg-oratorio-banner">

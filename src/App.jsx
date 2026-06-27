@@ -13,8 +13,9 @@ import Personaggi from './pages/Personaggi';
 import AdminPage from './pages/AdminPage';
 import ModaleCambioCodice from './components/ModaleCambioCodice';
 
-// ─── FLAG: metti false per disabilitare il pulsante "Modifica squadra" ───────
-const MODIFICA_SQUADRA_ABILITATA = true;
+// ─── Modifica abilitata solo prima di martedì 30 giugno 2026 alle 8:00 ───────
+const DEADLINE_MODIFICA = new Date('2026-06-30T08:00:00');
+const MODIFICA_SQUADRA_ABILITATA = new Date() < DEADLINE_MODIFICA;
 // ─────────────────────────────────────────────────────────────────────────────
 
 function AppContent({ vistaGlobale, setVistaGlobale }) {
