@@ -1,0 +1,80 @@
+import React, { useState } from 'react';
+import { useAuth } from '../context/AuthContext';
+import { useData } from '../context/DataContext';
+
+const MEDAL = ['🥇', '🥈', '🥉'];
+
+export default function Classifica() {
+  const { utente } = useAuth();
+  const { classifica, personaggi } = useData();
+  const [expanded, setExpanded] = useState(null);
+
+  const toggle = (codice) => setExpanded(prev => prev === codice ? null : codice);
+
+  return (
+    <div className="page">
+      <div className="page-header">
+        <h2>🏆 Classifica</h2>
+        <p className="page-subtitle">{classifica.length} squadre in gara</p>
+      </div>
+
+      <div className="classifica-list">
+        {classifica.map((g) => {
+          const isMine = g.codice === utente?.codice;
+          const isOpen = expanded === g.codice;
+          const medal = MEDAL[g.posizione - 1] ?? null;
+
+          return (
+            <div
+              key={g.codice}
+              className={`classifica-row ${isMine ? 'mine' : ''} ${isOpen ? 'open' : ''}`}
+              onClick={() => toggle(g.codice)}
+            >
+              <div className="cl-main">
+                <div className="cl-pos">
+                  {medal ? <span className="medal">{medal}</span> : <span className="pos-num">{g.posizione}</span>}
+                </div>
+                <div className="cl-info">
+                  <span className="cl-squadra">{g.nome_squadra}</span>
+                  <span className="cl-owner">{g.proprietario}</span>
+                </div>
+                {isMine && <span className="tu-badge">TU</span>}
+                <div className="cl-score">
+                  <span className="cl-pts">{g.punteggio.toFixed(1)}</span>
+                  <span className="cl-expand">{isOpen ? '▲' : '▼'}</span>
+                </div>
+              </div>
+
+              {isOpen && (
+                <div className="cl-dettagli">
+                  <div className="cl-dettagli-title">Formazione</div>
+                  <div className="cl-formazione">
+                    {g.dettagliSquadra.map((d, i) => {
+                      const personaggio = personaggi.find(p => p.id === d.id);
+                      return (
+                        <div key={i} className="cl-membro">
+                          <div className="cl-membro-info">
+                            <span className="cl-membro-ruolo">{personaggio?.ruolo || d.ruolo}</span>
+                            <span className="cl-membro-nome">{d.nome}</span>
+                          </div>
+                          <div className="cl-membro-score">
+                            <span className="cl-membro-pts">{d.totale.toFixed(1)}</span>
+                            {d.totaleBM !== 0 && (
+                              <span className={`cl-membro-bm ${d.totaleBM > 0 ? 'pos' : 'neg'}`}>
+                                {d.totaleBM > 0 ? '+' : ''}{d.totaleBM.toFixed(1)} b/m
+                              </span>
+                            )}
+                          </div>
+                        </div>
+                      );
+                    })}
+                  </div>
+                </div>
+              )}
+            </div>
+          );
+        })}
+      </div>
+    </div>
+  );
+}

@@ -1,0 +1,19 @@
+tipo,punti,descrizione,categoria,emoji
+bonus,+3,Ha aiutato spontaneamente un compagno in difficoltà,Comportamento,🤝
+bonus,+2,Ha partecipato con entusiasmo alle attività,Partecipazione,🙌
+bonus,+2,Ha vinto un gioco o una gara della giornata,Giochi,🏆
+bonus,+3,Ha dimostrato spirito di squadra esemplare,Comportamento,💪
+bonus,+1,È stato puntuale a tutte le attività,Puntualità,⏰
+bonus,+2,Ha condiviso qualcosa con altri senza essere chiesto,Generosità,🎁
+bonus,+3,Ha fatto qualcosa di inaspettato e bello per il gruppo,Sorpresa,✨
+bonus,+1,Ha partecipato alla preghiera con raccoglimento,Spiritualità,🙏
+bonus,+2,Ha proposto un'idea creativa per le attività,Creatività,💡
+bonus,+3,Ha saputo gestire un conflitto in modo maturo,Comportamento,🕊️
+malus,-1,È arrivato in ritardo a un'attività,Puntualità,⏰
+malus,-2,Ha litigato con un compagno,Comportamento,😠
+malus,-1,Ha usato il cellulare quando non era il momento,Regole,📵
+malus,-2,Ha disobbedito a un educatore o animatore,Regole,🚫
+malus,-3,Ha escluso intenzionalmente qualcuno dal gruppo,Comportamento,💔
+malus,-1,Non ha partecipato a un'attività senza valida ragione,Partecipazione,😴
+malus,-2,Ha rovinato o danneggiato qualcosa di comune,Rispetto,💥
+malus,-1,Ha detto una bugia che ha creato problemi,Comportamento,🤥
