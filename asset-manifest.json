@@ -1,0 +1,13 @@
+{
+  "files": {
+    "main.css": "/francesco-milione/Fanta-oratorio/static/css/main.960d0bde.css",
+    "main.js": "/francesco-milione/Fanta-oratorio/static/js/main.0feaf305.js",
+    "index.html": "/francesco-milione/Fanta-oratorio/index.html",
+    "main.960d0bde.css.map": "/francesco-milione/Fanta-oratorio/static/css/main.960d0bde.css.map",
+    "main.0feaf305.js.map": "/francesco-milione/Fanta-oratorio/static/js/main.0feaf305.js.map"
+  },
+  "entrypoints": [
+    "static/css/main.960d0bde.css",
+    "static/js/main.0feaf305.js"
+  ]
+}
