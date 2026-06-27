@@ -1,6 +1,7 @@
 import React, { useState } from 'react';
 import { useAuth } from '../context/AuthContext';
 import { useData } from '../context/DataContext';
+import { SQUADRE_LABEL } from '../context/DataContext';
 
 const MEDAL = ['🥇', '🥈', '🥉'];
 
@@ -35,7 +36,7 @@ export default function Classifica() {
                   {medal ? <span className="medal">{medal}</span> : <span className="pos-num">{g.posizione}</span>}
                 </div>
                 <div className="cl-info">
-                  <span className="cl-squadra">{g.nome_squadra}</span>
+                  <span className="cl-squadra">{g['nome-squadra']}</span>
                   <span className="cl-owner">{g.proprietario}</span>
                 </div>
                 {isMine && <span className="tu-badge">TU</span>}
@@ -69,6 +70,30 @@ export default function Classifica() {
                         </div>
                       );
                     })}
+                    {/* Riga squadra oratorio */}
+                    {g['squadra-oratorio'] && (() => {
+                      const sq = g['squadra-oratorio'];
+                      const info = SQUADRE_LABEL[sq];
+                      const sqScore = g.squadraScore;
+                      if (!info || !sqScore) return null;
+                      return (
+                        <div className="cl-membro">
+                          <div className="cl-membro-info">
+                            <span className="cl-membro-ruolo">{info.emoji} Squadra</span>
+                            <span className="cl-membro-nome">{info.label}</span>
+                          </div>
+                          <div className="cl-membro-score">
+                            <span
+                              className={`cl-membro-bm ${sqScore.totaleBM >= 0 ? 'pos' : 'neg'}`}
+                              style={sqScore.totaleBM === 0 ? { visibility: 'hidden' } : {}}
+                            >
+                              {sqScore.totaleBM > 0 ? '+' : ''}{sqScore.totaleBM.toFixed(1)}
+                            </span>
+                            <span className="cl-membro-pts">{sqScore.totale.toFixed(1)}</span>
+                          </div>
+                        </div>
+                      );
+                    })()}
                   </div>
                 </div>
               )}

@@ -16,6 +16,7 @@ function AppContent({ vistaGlobale, setVistaGlobale }) {
   const { utente } = useAuth();
   const [pagina, setPagina] = useState('squadra');
 
+  // Vista iscrizione pubblica (senza login)
   if (vistaGlobale === 'iscrizione') {
     return <Iscrizione onTornaLogin={() => setVistaGlobale(null)} />;
   }
@@ -23,6 +24,17 @@ function AppContent({ vistaGlobale, setVistaGlobale }) {
   if (!utente) return <LoginPage onIscrizione={() => setVistaGlobale('iscrizione')} />;
 
   if (utente.isAdmin) return <AdminPage />;
+
+  // Utente loggato ma senza squadra → mostra il form di creazione
+  if (utente.hasTeam === false) {
+    return (
+      <Iscrizione
+        modalitaPostLogin
+        utenteLoggato={utente}
+        onTornaLogin={() => {}} // non necessario in questa modalità
+      />
+    );
+  }
 
   return (
     <div>

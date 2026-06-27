@@ -3,9 +3,12 @@ import React, { useState, useEffect } from 'react';
 const BASE = process.env.PUBLIC_URL || '';
 
 const RUOLI = [
-  { id: 'Bambino',   label: 'Bambino',   emoji: '👦', colore: '#3b82f6' },
-  { id: 'Animatore', label: 'Animatore', emoji: '🎭', colore: '#f59e0b' },
-  { id: 'Educatore', label: 'Educatore', emoji: '📚', colore: '#8b5cf6' },
+  { id: 'Educatore',          label: 'Educatore',          emoji: '📚', colore: '#8b5cf6' },
+  { id: 'Pre animatore',      label: 'Pre animatore',      emoji: '🌱', colore: '#10b981' },
+  { id: 'Animatore',          label: 'Animatore',          emoji: '🎭', colore: '#f59e0b' },
+  { id: 'Amico di San Carlo', label: 'Amico di S. Carlo',  emoji: '✝️', colore: '#ec4899' },
+  { id: 'Squadra',            label: 'Squadra',            emoji: '🏆', colore: '#3b82f6' },
+  { id: 'Tutti',              label: 'Tutti',              emoji: '⭐', colore: '#64748b' },
 ];
 
 function parseCSV(text) {
@@ -32,7 +35,7 @@ export default function Regolamento() {
   const [voci, setVoci] = useState([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
-  const [ruoloAttivo, setRuoloAttivo] = useState('Bambino');
+  const [ruoloAttivo, setRuoloAttivo] = useState('Educatore');
 
   useEffect(() => {
     fetch(`${BASE}/data/regolamento.csv?t=${Date.now()}`)
@@ -82,11 +85,14 @@ export default function Regolamento() {
       {/* Intro */}
       <div className="reg-intro-card">
         <p>Ogni personaggio riceve ogni sera un <strong>voto base</strong> dalla staff e può guadagnare o perdere punti extra con <strong>bonus e malus</strong> per gli episodi speciali della giornata.</p>
-        <p style={{marginTop: 10}}>Il punteggio della squadra è la <strong>somma dei punteggi di tutti e 6 i personaggi</strong>.</p>
+        <p style={{marginTop: 10}}>Il punteggio della squadra è la <strong>somma dei punteggi di tutti e 5 i personaggi</strong> più i <strong>punti della squadra oratorio</strong> scelta (Leoni, Gechi, Aquile o Squali).</p>
+        <div style={{ marginTop: 12, padding: '10px 14px', background: 'var(--surface)', borderRadius: 8, fontSize: 13, color: 'var(--text-muted)' }}>
+          <strong>Formazione:</strong> 1 Educatore · 1 Pre animatore · 2 Animatori · 1 Amico di San Carlo + Squadra oratorio
+        </div>
       </div>
 
       {/* Tab ruoli */}
-      <div className="reg-ruoli-tabs">
+      <div className="reg-ruoli-tabs" style={{ flexWrap: 'wrap' }}>
         {RUOLI.map(r => (
           <button
             key={r.id}

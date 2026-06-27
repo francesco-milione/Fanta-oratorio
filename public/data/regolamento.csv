@@ -1,44 +1,25 @@
 tipo,punti,descrizione,categoria,emoji
-bonus,+3,Ha convinto un compagno a non fare una birichinata,Bambino,😇
-bonus,+2,Ha corso più veloce dell'animatore nella gara,Bambino,🏃
-bonus,+2,Ha cantato a squarciagola durante l'animazione,Bambino,🎤
-bonus,+3,Ha aiutato un amico che era caduto senza che nessuno lo chiedesse,Bambino,🦸
-bonus,+1,Ha tenuto il segreto della sorpresa per tutta la giornata,Bambino,🤫
-bonus,+2,Ha fatto ridere tutto il gruppo con una battuta buona,Bambino,😂
-bonus,+3,Ha fatto pace con un compagno dopo un litigio,Bambino,🤝
-bonus,+1,Ha aiutato a riordinare senza protestare,Bambino,🧹
-bonus,+2,Ha partecipato alla preghiera con raccoglimento vero,Bambino,🙏
-malus,-2,Si è fatto male (caduta epica degna di un film),Bambino,🩹
-malus,-1,È arrivato in ritardo trascinato dai genitori,Bambino,⏰
-malus,-2,Ha pianto per qualcosa di misterioso (ancora non si sa cosa),Bambino,😭
-malus,-3,Ha fatto volare un oggetto in modo poco consigliabile,Bambino,🪑
-malus,-1,Trovato con il cellulare nascosto nelle tasche,Bambino,📱
-malus,-2,Ha fatto il broncio per tutta l'attività senza motivo,Bambino,😤
-malus,-1,Ha detto "mi annoio" durante un'attività organizzata apposta per lui,Bambino,😴
-malus,-2,Ha litigato con qualcuno per un motivo incomprensibile,Bambino,🥊
-malus,-3,Ha fatto del male a un compagno di proposito,Bambino,😠
-malus,-1,Ha esagerato col cibo al pranzo (sì proprio lui),Bambino,🍕
 bonus,+3,Ha inventato un gioco che ha funzionato davvero (miracolo!),Animatore,🎯
 bonus,+2,Ha fatto ridere tutto il gruppo con una battuta,Animatore,😎
 bonus,+2,Sapeva tutte le parole delle canzoni dell'animazione,Animatore,🎶
-bonus,+3,Ha portato i bambini a destinazione senza perderne nemmeno uno,Animatore,🐑
-bonus,+2,Ha risolto una lite tra bambini senza perdere la testa,Animatore,🧩
+bonus,+3,Ha guidato il suo gruppo portandolo a destinazione senza perdersi,Animatore,🐑
+bonus,+2,Ha risolto una lite senza perdere la testa,Animatore,🧩
 bonus,+1,Ha improvvisato un'attività in 5 minuti ed è venuta benissimo,Animatore,⚡
-bonus,+3,Ha fatto entusiasmare anche il bambino più brontolone,Animatore,🏆
+bonus,+3,Ha fatto entusiasmare anche il più brontolone del gruppo,Animatore,🏆
 bonus,+2,Ha dimostrato doti atletiche durante i giochi,Animatore,💪
-malus,-2,Ha perso un bambino per più di 5 minuti (poi l'ha ritrovato tranquillo),Animatore,😵
+malus,-2,Ha perso di vista il suo gruppo per più di 5 minuti,Animatore,😵
 malus,-1,Beccato a dormire durante un'attività (con gli occhi aperti però),Animatore,☕
-malus,-2,Ha urlato così forte da spaventare i bambini,Animatore,📢
+malus,-2,Ha urlato così forte da spaventare tutti,Animatore,📢
 malus,-3,Trovato a giocare al telefono invece di animare,Animatore,🎮
 malus,-1,Ha sbagliato le regole del gioco che aveva inventato lui stesso,Animatore,🤦
-malus,-2,Ha promesso una cosa ai bambini che poi non ha potuto mantenere,Animatore,🤥
+malus,-2,Ha promesso una cosa che poi non ha potuto mantenere,Animatore,🤥
 malus,-1,Ha perso il filo dell'attività ed è finita nel caos totale,Animatore,🌪️
-malus,-2,Ha litigato con un bambino (e il bambino aveva ragione),Animatore,👦
+malus,-2,Ha litigato con qualcuno del gruppo (e il gruppo aveva ragione),Animatore,👦
 bonus,+3,Ha tenuto un discorso motivazionale che ha emozionato tutti,Educatore,📣
 bonus,+2,Ha sopravvissuto all'intera giornata senza caffè (leggendario),Educatore,☕
 bonus,+3,Ha mantenuto la calma in una situazione di caos totale,Educatore,🧘
 bonus,+2,Ha convinto tutti a partecipare senza usare la voce da sergente,Educatore,🏅
-bonus,+1,Ha ricordato il nome di tutti i bambini senza sbagliare,Educatore,🧠
+bonus,+1,Ha ricordato il nome di tutti senza sbagliare,Educatore,🧠
 bonus,+3,Ha risolto un problema complicato con una soluzione geniale,Educatore,💡
 bonus,+2,Ha aiutato un animatore in difficoltà senza farlo sentire giudicato,Educatore,🤝
 bonus,+1,Ha fatto una cosa spontanea e bella per il gruppo,Educatore,✨
@@ -50,17 +31,49 @@ malus,-1,Ha risposto al telefono durante un momento importante,Educatore,📞
 malus,-2,Ha detto "ai miei tempi all'oratorio…" per più di due minuti,Educatore,📻
 malus,-1,Ha perso la lista presenze (quella che aveva appena stampato),Educatore,📋
 malus,-2,Ha fatto una regola sul momento e poi se l'è dimenticata,Educatore,🤷
+bonus,+3,Ha fatto da ponte tra pre-animatori e animatori con grande maturità,Pre animatore,🌉
+bonus,+2,Ha preso iniziativa senza aspettare che qualcuno glielo dicesse,Pre animatore,🚀
+bonus,+2,Ha gestito un piccolo gruppetto in autonomia e ha funzionato,Pre animatore,🌟
+bonus,+3,Ha dimostrato di essere pronto per diventare animatore l'anno prossimo,Pre animatore,📈
+bonus,+1,Ha aiutato un animatore in difficoltà senza essere chiesto,Pre animatore,🤗
+bonus,+2,Ha animato una canzone con più energia di tutti,Pre animatore,🎵
+malus,-2,Ha confuso il suo ruolo e si è messo a fare il bambino,Pre animatore,👶
+malus,-1,Ha aspettato le istruzioni invece di prendere iniziativa,Pre animatore,⏳
+malus,-2,Ha litigato con qualcuno davanti ai ragazzi,Pre animatore,🥊
+malus,-1,Ha usato il telefono mentre doveva animare,Pre animatore,📱
+malus,-3,È sparito durante un'attività senza avvisare nessuno,Pre animatore,👻
+malus,-2,Ha detto "non so cosa fare" per tutta la mattina,Pre animatore,🤷
+bonus,+3,Ha coinvolto tutti i ragazzi con il suo entusiasmo contagioso,Amico di San Carlo,🔥
+bonus,+2,Ha dato il buon esempio in un momento difficile,Amico di San Carlo,😇
+bonus,+3,Ha fatto una testimonianza che ha toccato il cuore di tutti,Amico di San Carlo,💛
+bonus,+2,Ha aiutato un ragazzo che era in difficoltà con grande discrezione,Amico di San Carlo,🕊️
+bonus,+1,Ha partecipato alla preghiera con raccoglimento e autenticità,Amico di San Carlo,🙏
+bonus,+2,Ha fatto da punto di riferimento per i più piccoli,Amico di San Carlo,⭐
+malus,-2,Ha fatto tardi ad un momento importante senza avvisare,Amico di San Carlo,⏰
+malus,-1,Ha usato il telefono durante un'attività,Amico di San Carlo,📱
+malus,-2,Ha deluso le aspettative in un momento chiave,Amico di San Carlo,😔
+malus,-3,Ha fatto del gossip davanti ai ragazzi (che stavano tutti ad ascoltare),Amico di San Carlo,🗣️
+malus,-1,Ha brontolato per tutta la giornata senza motivo apparente,Amico di San Carlo,😒
+bonus,+5,Ha vinto la sfida del giorno tra squadre,Squadra,🏆
+bonus,+3,Ha vinto la gara di canto dell'animazione,Squadra,🎤
+bonus,+2,Migliore performance nella preghiera del mattino,Squadra,🙏
+bonus,+3,Ha vinto il gioco a squadre del pomeriggio,Squadra,🎯
+bonus,+2,Più ordinata e pulita al momento del pranzo,Squadra,🧹
+bonus,+1,Prima ad essere pronta per l'attività,Squadra,⚡
+malus,-3,Ultima nella classifica del giorno,Squadra,😢
+malus,-2,Ha perso la gara a squadre principale,Squadra,😤
+malus,-1,La più disorganizzata durante un'attività,Squadra,🌪️
+malus,-2,Ha avuto il maggior numero di ritardatari della giornata,Squadra,⏰
 bonus,+3,Ha trascinato tutto il gruppo con l'entusiasmo quando nessuno aveva voglia,Tutti,🔥
-bonus,+2,Era lo spaiato ma ha trovato comunque il modo di partecipare — respect,Tutti,🃏
 bonus,+2,Ha fatto una battuta che ha fatto ridere pure il più brontolone del gruppo,Tutti,😆
 bonus,+3,Ha difeso qualcuno che stava per fare brutta figura davanti a tutti,Tutti,🛡️
-bonus,+2,Ha trovato qualcosa che qualcuno aveva perso senza dire nulla e senza aspettarsi ringraziamenti,Tutti,🔍
+bonus,+2,Ha trovato qualcosa che qualcuno aveva perso senza aspettarsi ringraziamenti,Tutti,🔍
 bonus,+1,Ha detto "grazie" spontaneamente senza che nessuno lo ricordasse,Tutti,🌟
 bonus,+2,Ha fatto una cosa di cui nessuno si aspettava fosse capace — sorpresa dell'anno,Tutti,🎩
 bonus,+1,Ha aiutato qualcuno in silenzio senza farlo sembrare un favore,Tutti,🥷
 bonus,+2,Ha ammesso di aver sbagliato davanti a tutti senza fare drammi,Tutti,🫡
 bonus,+3,Ha improvvisato qualcosa di bellissimo che nessuno aveva previsto,Tutti,✨
-malus,-1,Lo Spaiato — si è lamentato per 10 minuti invece di trovare una soluzione,Tutti,🫧
+malus,-1,Si è lamentato per 10 minuti invece di trovare una soluzione,Tutti,🫧
 malus,-3,🏆 Cretino del Giorno — ha fatto una cosa così senza senso che nemmeno lui sa spiegare perché,Tutti,🤡
 malus,-1,Ha sbagliato il nome di qualcuno e ha continuato a sbagliarlo per tutta la giornata,Tutti,🙃
 malus,-2,Ha usato il telefono pensando che nessuno lo vedesse (sbagliato),Tutti,📱

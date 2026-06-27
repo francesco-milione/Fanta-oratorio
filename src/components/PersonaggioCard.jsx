@@ -1,21 +1,18 @@
 import React from 'react';
+import { SQUADRE_LABEL } from '../context/DataContext';
 
 const RUOLO_CONFIG = {
-  educatore: { label: 'Educatore', emoji: '🙏', color: '#6c63ff' },
-  animatore1: { label: 'Animatore', emoji: '🎮', color: '#f59e0b' },
-  animatore2: { label: 'Animatore', emoji: '🎮', color: '#f59e0b' },
-  bambino1: { label: 'Bambino', emoji: '⭐', color: '#10b981' },
-  bambino2: { label: 'Bambino', emoji: '⭐', color: '#10b981' },
-  bambino3: { label: 'Bambino', emoji: '⭐', color: '#10b981' },
+  educatore:         { label: 'Educatore',       emoji: '🙏',  color: '#6c63ff' },
+  animatore1:        { label: 'Animatore',        emoji: '🎮',  color: '#f59e0b' },
+  animatore2:        { label: 'Animatore',        emoji: '🎮',  color: '#f59e0b' },
+  'pre animatore':   { label: 'Pre animatore',    emoji: '🌱',  color: '#10b981' },
+  'amico san carlo': { label: 'Amico San Carlo',  emoji: '✝️',  color: '#ec4899' },
 };
 
-export function PersonaggioCard({ id, nome, ruolo, score, giorno }) {
+// Card per i singoli personaggi: mostra solo bonus/malus (niente voto base)
+export function PersonaggioCard({ id, nome, ruolo, score }) {
   const cfg = RUOLO_CONFIG[ruolo] || { label: ruolo, emoji: '👤', color: '#888' };
-  const punteggio = giorno !== undefined
-    ? (score?.votoGiorno ?? 0) + (score?.bonusMalusGiorno ?? 0)
-    : score?.totale ?? 0;
-
-  const segno = punteggio >= 0 ? '+' : '';
+  const bm = score?.totaleBM ?? 0;
 
   return (
     <div className="personaggio-card">
@@ -27,19 +24,48 @@ export function PersonaggioCard({ id, nome, ruolo, score, giorno }) {
         <span className="personaggio-nome">{nome || id}</span>
       </div>
       <div className="personaggio-score">
-        <span className="score-big" style={{ color: punteggio < 0 ? '#ef4444' : '#10b981' }}>
-          {giorno !== undefined ? `${segno}${punteggio.toFixed(1)}` : punteggio.toFixed(1)}
+        <span className="score-big" style={{ color: bm < 0 ? '#ef4444' : bm > 0 ? '#10b981' : '#888' }}>
+          {bm > 0 ? '+' : ''}{bm.toFixed(1)}
         </span>
-        {giorno === undefined && score && (
-          <span className="score-sub">{score.numGiorni} gior.</span>
-        )}
+        <span className="score-sub">bonus/malus</span>
       </div>
     </div>
   );
 }
 
-export function PersonaggioDettaglioCard({ personaggio, bonusMalus, votazioni, giorno }) {
-  const voto = votazioni.find(v => v.id_personaggio === personaggio.id && v.giorno === String(giorno));
+// Card per la squadra oratorio: mostra voto base + bonus/malus
+export function SquadraCard({ squadraOratorio, squadraScore }) {
+  const info = SQUADRE_LABEL[squadraOratorio];
+  if (!info) return null;
+  const voto = squadraScore?.votoBase ?? 0;
+  const bm = squadraScore?.totaleBM ?? 0;
+  const totale = squadraScore?.totale ?? 0;
+
+  return (
+    <div className="personaggio-card">
+      <div className="personaggio-avatar" style={{ background: info.colore + '22', borderColor: info.colore }}>
+        <span style={{ fontSize: 22 }}>{info.emoji}</span>
+      </div>
+      <div className="personaggio-info">
+        <span className="personaggio-ruolo" style={{ color: info.colore }}>Squadra Oratorio</span>
+        <span className="personaggio-nome">{info.label}</span>
+        {(bm !== 0) && (
+          <span style={{ fontSize: 11, color: '#888', marginTop: 2 }}>
+            voto {voto.toFixed(1)} {bm > 0 ? '+' : ''}{bm.toFixed(1)} bm
+          </span>
+        )}
+      </div>
+      <div className="personaggio-score">
+        <span className="score-big" style={{ color: totale < 0 ? '#ef4444' : totale > 0 ? '#10b981' : '#888' }}>
+          {totale.toFixed(1)}
+        </span>
+        <span className="score-sub">{squadraScore?.numGiorni ?? 0} gior.</span>
+      </div>
+    </div>
+  );
+}
+
+export function PersonaggioDettaglioCard({ personaggio, bonusMalus, giorno }) {
   const bm = bonusMalus.filter(b => b.id_personaggio === personaggio.id && b.giorno === String(giorno));
 
   return (
@@ -48,13 +74,7 @@ export function PersonaggioDettaglioCard({ personaggio, bonusMalus, votazioni, g
         <span className="pd-nome">{personaggio.nome}</span>
         <span className="pd-ruolo">{personaggio.ruolo}</span>
       </div>
-      {voto && (
-        <div className="pd-voto">
-          <span>📊 Voto base</span>
-          <span className="voto-num">{parseFloat(voto.voto_base).toFixed(1)}</span>
-        </div>
-      )}
-      {bm.length > 0 && (
+      {bm.length > 0 ? (
         <div className="pd-bm">
           {bm.map((b, i) => {
             const pts = parseFloat((b.punti || '0').replace('+', ''));
@@ -66,9 +86,8 @@ export function PersonaggioDettaglioCard({ personaggio, bonusMalus, votazioni, g
             );
           })}
         </div>
-      )}
-      {!voto && bm.length === 0 && (
-        <div className="pd-empty">Nessun dato per questo giorno</div>
+      ) : (
+        <div className="pd-empty">Nessun bonus/malus per questo giorno</div>
       )}
     </div>
   );

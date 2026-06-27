@@ -1,6 +1,7 @@
 import React, { useState, useEffect, useCallback } from 'react';
 import { useAuth } from '../context/AuthContext';
 import { useData } from '../context/DataContext';
+import { SQUADRE_ORATORIO, SQUADRE_LABEL } from '../context/DataContext';
 
 // ── helpers localStorage ──────────────────────────────────────────────────────
 function loadAdminState() {
@@ -103,7 +104,7 @@ export default function AdminPage() {
   function autofill() {
     const s = { ...adminState };
     const g = getGiornata(s, giornata);
-    personaggi.forEach(p => { if (g.voti[p.id] === undefined) g.voti[p.id] = 6.0; });
+    SQUADRE_ORATORIO.forEach(sq => { if (g.voti[sq] === undefined) g.voti[sq] = 6.0; });
     persist(s);
     showToast('Voti mancanti impostati a 6.0');
   }
@@ -133,7 +134,7 @@ export default function AdminPage() {
 
   function exportVotazioni() {
     if (!datiG) return;
-    const rows = [['id_personaggio', 'giorno', 'voto_base']];
+    const rows = [['id_squadra', 'giorno', 'voto_base']];
     Object.entries(datiG.voti).forEach(([id, v]) => rows.push([id, giornata, v]));
     if (rows.length === 1) { showToast('Nessun voto da esportare', 'err'); return; }
     downloadCSV(`votazioni_g${giornata}.csv`, rows);
@@ -196,7 +197,7 @@ export default function AdminPage() {
           <>
             {/* STATS */}
             <div style={S.statsRow}>
-              <StatCard label="Voti inseriti" value={nVoti} sub={`su ${personaggi.length} personaggi`} color="#f59e0b" />
+              <StatCard label="Voti inseriti" value={nVoti} sub="su 4 squadre" color="#f59e0b" />
               <StatCard label="Bonus" value={nBonus} sub="assegnati" color="#4ade80" />
               <StatCard label="Malus" value={nMalus} sub="assegnati" color="#f87171" />
             </div>
@@ -213,12 +214,8 @@ export default function AdminPage() {
 
             {tab === 'voti' && (
               <VotiTab
-                personaggi={personaggi}
                 voti={datiG.voti}
-                filtroRuolo={filtroRuolo}
-                setFiltroRuolo={setFiltroRuolo}
                 onSetVoto={setVoto}
-                onAutofill={autofill}
                 onReset={resetVoti}
               />
             )}
@@ -260,65 +257,50 @@ export default function AdminPage() {
 }
 
 // ─── VotiTab ─────────────────────────────────────────────────────────────────
-function VotiTab({ personaggi, voti, filtroRuolo, setFiltroRuolo, onSetVoto, onAutofill, onReset }) {
-  const ruoli = ['tutti', 'educatore', 'animatore', 'bambino'];
-  const filtered = filtroRuolo === 'tutti' ? personaggi : personaggi.filter(p => p.ruolo === filtroRuolo);
-
+// Il voto base viene assegnato alla squadra oratorio (leoni/gechi/aquile/squali),
+// non ai singoli personaggi.
+function VotiTab({ voti, onSetVoto, onReset }) {
   return (
     <div style={S.sectionCard}>
       <div style={S.sectionHeader}>
-        <span style={{ fontWeight: 700, fontSize: 15 }}>Voti Base</span>
-        <div style={{ display: 'flex', gap: 8 }}>
-          <button style={S.btnOutline} onClick={onAutofill}>Auto-fill 6.0</button>
-          <button style={{ ...S.btnOutline, color: '#f87171', borderColor: '#f87171' }} onClick={onReset}>Reset</button>
-        </div>
+        <span style={{ fontWeight: 700, fontSize: 15 }}>Voto Base Squadre</span>
+        <button style={{ ...S.btnOutline, color: '#f87171', borderColor: '#f87171' }} onClick={onReset}>Reset</button>
       </div>
-      {/* filtri */}
-      <div style={{ display: 'flex', gap: 8, padding: '10px 16px', borderBottom: '1px solid #1e293b' }}>
-        {ruoli.map(r => (
-          <button key={r} style={{ ...S.filterBtn, ...(filtroRuolo === r ? S.filterBtnActive : {}) }}
-            onClick={() => setFiltroRuolo(r)}>
-            {r.charAt(0).toUpperCase() + r.slice(1)}
-          </button>
-        ))}
-        <span style={{ color: '#475569', fontSize: 12, marginLeft: 'auto', alignSelf: 'center' }}>
-          {filtered.length} personaggi
-        </span>
+      <div style={{ padding: '8px 0' }}>
+        {SQUADRE_ORATORIO.map(sq => {
+          const info = SQUADRE_LABEL[sq];
+          const v = voti[sq];
+          return (
+            <div key={sq} style={{
+              display: 'flex', alignItems: 'center', gap: 16,
+              padding: '14px 20px', borderBottom: '1px solid #1a2133',
+            }}>
+              <span style={{ fontSize: 28 }}>{info.emoji}</span>
+              <span style={{ fontWeight: 700, fontSize: 17, color: info.colore, minWidth: 80 }}>
+                {info.label}
+              </span>
+              <input
+                type="number" min="0" max="10" step="0.5"
+                defaultValue={v ?? ''}
+                placeholder="—"
+                onBlur={e => onSetVoto(sq, e.target.value)}
+                style={{
+                  ...S.votoInput,
+                  width: 100,
+                  borderColor: v !== undefined ? info.colore + '88' : '#334155',
+                  background: v !== undefined ? info.colore + '11' : '#0f172a',
+                  color: info.colore,
+                  fontSize: 18,
+                  fontWeight: 700,
+                }}
+              />
+              {v !== undefined && (
+                <span style={{ color: '#64748b', fontSize: 13 }}>punti assegnati</span>
+              )}
+            </div>
+          );
+        })}
       </div>
-      <table style={{ width: '100%', borderCollapse: 'collapse' }}>
-        <thead>
-          <tr style={{ background: '#0f172a' }}>
-            {['ID', 'Nome', 'Ruolo', 'Voto base'].map(h => (
-              <th key={h} style={S.th}>{h}</th>
-            ))}
-          </tr>
-        </thead>
-        <tbody>
-          {filtered.map(p => {
-            const v = voti[p.id];
-            return (
-              <tr key={p.id} style={{ borderBottom: '1px solid #1a2133' }}>
-                <td style={{ ...S.td, color: '#475569', fontSize: 12 }}>{p.id}</td>
-                <td style={{ ...S.td, fontWeight: 500 }}>{p.nome}</td>
-                <td style={S.td}><RuoloBadge ruolo={p.ruolo} /></td>
-                <td style={S.td}>
-                  <input
-                    type="number" min="0" max="10" step="0.5"
-                    defaultValue={v ?? ''}
-                    placeholder="—"
-                    onBlur={e => onSetVoto(p.id, e.target.value)}
-                    style={{
-                      ...S.votoInput,
-                      borderColor: v !== undefined ? '#22c55e66' : '#334155',
-                      background: v !== undefined ? '#05966911' : '#0f172a',
-                    }}
-                  />
-                </td>
-              </tr>
-            );
-          })}
-        </tbody>
-      </table>
     </div>
   );
 }
@@ -334,7 +316,12 @@ function BonusMalusTab({ personaggi, bonusMalus, regolamento, onAggiungi, onRimu
   const personaggio = personaggi.find(p => p.id === personaggioId);
 
   // Mappa ruolo CSV → categoria regolamento
-  const catMap = { educatore: 'Educatore', animatore: 'Animatore', bambino: 'Bambino' };
+  const catMap = {
+    educatore: 'Educatore',
+    animatore: 'Animatore',
+    'pre animatore': 'Pre animatore',
+    'amico san carlo': 'Amico di San Carlo',
+  };
   const presets = personaggio
     ? regolamento.filter(r => r.categoria === catMap[personaggio.ruolo])
     : [];
@@ -369,9 +356,14 @@ function BonusMalusTab({ personaggi, bonusMalus, regolamento, onAggiungi, onRimu
             onChange={e => setPersonaggioId(e.target.value)}
           >
             <option value="">-- Seleziona personaggio --</option>
-            {['educatore', 'animatore', 'bambino'].map(r => (
-              <optgroup key={r} label={r.charAt(0).toUpperCase() + r.slice(1) + 'i'}>
-                {personaggi.filter(p => p.ruolo === r).map(p => (
+            {[
+              { ruolo: 'educatore', label: 'Educatori' },
+              { ruolo: 'pre animatore', label: 'Pre-animatori' },
+              { ruolo: 'animatore', label: 'Animatori' },
+              { ruolo: 'amico san carlo', label: 'Amici di San Carlo' },
+            ].map(({ ruolo, label }) => (
+              <optgroup key={ruolo} label={label}>
+                {personaggi.filter(p => p.ruolo === ruolo).map(p => (
                   <option key={p.id} value={p.id}>[{p.id}] {p.nome}</option>
                 ))}
               </optgroup>
@@ -533,9 +525,10 @@ function StatCard({ label, value, sub, color }) {
 // ─── RuoloBadge ──────────────────────────────────────────────────────────────
 function RuoloBadge({ ruolo }) {
   const styles = {
-    educatore: { background: '#7c3aed22', color: '#a78bfa', border: '1px solid #7c3aed44' },
-    animatore: { background: '#0369a122', color: '#38bdf8', border: '1px solid #0369a144' },
-    bambino:   { background: '#05966922', color: '#34d399', border: '1px solid #05966944' },
+    educatore:         { background: '#7c3aed22', color: '#a78bfa', border: '1px solid #7c3aed44' },
+    animatore:         { background: '#0369a122', color: '#38bdf8', border: '1px solid #0369a144' },
+    'pre animatore':   { background: '#05966922', color: '#34d399', border: '1px solid #05966944' },
+    'amico san carlo': { background: '#ec489922', color: '#f472b6', border: '1px solid #ec489944' },
   };
   return (
     <span style={{

@@ -1,3 +1,3 @@
-codice,nome_squadra,proprietario,educatore,animatore1,animatore2,bambino1,bambino2,bambino3
-PROVA1,Gli Invincibili,Francesco Milione.,EDU001,ANI001,ANI003,BAM001,BAM003,BAM005
-FRA1,Prova squadra 2,Francesco Milione,EDU010,ANI010,ANI001,BAM001,BAM002,BAM003
+codice,nome-squadra,proprietario,educatore,animatore1,animatore2,pre animatore,amico san carlo,squadra-oratorio
+PROVA1,Gli Invincibili,Francesco Milione.,EDU001,ANI001,ANI003,PRE001,AMC001,leoni
+FRA26,Nome squadra,Francesco M.,EDU001,ANI010,ANI011,PRE001,AMC004,leoni
