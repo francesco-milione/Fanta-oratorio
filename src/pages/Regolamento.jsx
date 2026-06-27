@@ -2,6 +2,12 @@ import React, { useState, useEffect } from 'react';
 
 const BASE = process.env.PUBLIC_URL || '';
 
+const RUOLI = [
+  { id: 'Bambino',   label: 'Bambino',   emoji: '👦', colore: '#3b82f6' },
+  { id: 'Animatore', label: 'Animatore', emoji: '🎭', colore: '#f59e0b' },
+  { id: 'Educatore', label: 'Educatore', emoji: '📚', colore: '#8b5cf6' },
+];
+
 function parseCSV(text) {
   const lines = text.trim().split('\n');
   if (lines.length < 2) return [];
@@ -26,7 +32,7 @@ export default function Regolamento() {
   const [voci, setVoci] = useState([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
-  const [categoriaAttiva, setCategoriaAttiva] = useState(null);
+  const [ruoloAttivo, setRuoloAttivo] = useState('Bambino');
 
   useEffect(() => {
     fetch(`${BASE}/data/regolamento.csv?t=${Date.now()}`)
@@ -35,19 +41,10 @@ export default function Regolamento() {
       .catch(e => { setError(e.message); setLoading(false); });
   }, []);
 
-  const categorie = [...new Set(voci.map(v => v.categoria).filter(Boolean))];
-  const vociFiltrate = categoriaAttiva ? voci.filter(v => v.categoria === categoriaAttiva) : voci;
+  const vociFiltrate = voci.filter(v => v.categoria === ruoloAttivo);
   const bonus = vociFiltrate.filter(v => v.tipo === 'bonus');
   const malus = vociFiltrate.filter(v => v.tipo === 'malus');
-
-  const maxBonus = voci.filter(v => v.tipo === 'bonus').reduce((max, v) => {
-    const p = parseFloat((v.punti || '0').replace('+', ''));
-    return p > max ? p : max;
-  }, 0);
-  const maxMalus = voci.filter(v => v.tipo === 'malus').reduce((min, v) => {
-    const p = parseFloat((v.punti || '0').replace('+', ''));
-    return p < min ? p : min;
-  }, 0);
+  const ruoloInfo = RUOLI.find(r => r.id === ruoloAttivo);
 
   if (loading) return (
     <div className="page">
@@ -60,11 +57,7 @@ export default function Regolamento() {
       <div className="reg-error-card">
         <span>📭</span>
         <h3>Regolamento non ancora caricato</h3>
-        <p>Aggiungi il file <code>public/data/regolamento.csv</code> al progetto per visualizzare il regolamento dei bonus e malus.</p>
-        <div className="reg-csv-example">
-          <p className="reg-csv-title">Formato del file:</p>
-          <pre>{`tipo,punti,descrizione,categoria,emoji\nbonus,+3,Ha aiutato un compagno in difficoltà,Comportamento,🤝\nmalus,-2,Ritardo alle attività,Puntualità,⏰`}</pre>
-        </div>
+        <p>Aggiungi il file <code>public/data/regolamento.csv</code> al progetto.</p>
       </div>
     </div>
   );
@@ -76,7 +69,7 @@ export default function Regolamento() {
         <p className="page-subtitle">Come si guadagnano (e perdono) i punti</p>
       </div>
 
-      {/* Intestazione oratorio */}
+      {/* Banner oratorio */}
       <div className="reg-oratorio-banner">
         <div className="reg-oratorio-icon">✝️</div>
         <div>
@@ -86,46 +79,57 @@ export default function Regolamento() {
         <div className="reg-oratorio-anno">Estate 2026</div>
       </div>
 
-      {/* Come funziona */}
+      {/* Intro */}
       <div className="reg-intro-card">
-        <p>Ogni personaggio della tua squadra riceve ogni sera un <strong>voto base</strong> dalla staff (come una pagella!) e può guadagnare o perdere punti extra tramite <strong>bonus e malus</strong> per episodi speciali della giornata.</p>
-        <p style={{marginTop: 10}}>Il punteggio della tua squadra è la <strong>somma dei punteggi di tutti e 6 i tuoi personaggi</strong>.</p>
+        <p>Ogni personaggio riceve ogni sera un <strong>voto base</strong> dalla staff e può guadagnare o perdere punti extra con <strong>bonus e malus</strong> per gli episodi speciali della giornata.</p>
+        <p style={{marginTop: 10}}>Il punteggio della squadra è la <strong>somma dei punteggi di tutti e 6 i personaggi</strong>.</p>
       </div>
 
-      {/* Pillole statistiche */}
+      {/* Statistiche globali */}
       <div className="reg-stats">
-        <div className="reg-stat green">
-          <span className="reg-stat-num">+{maxBonus}</span>
-          <span className="reg-stat-label">massimo bonus singolo</span>
-        </div>
-        <div className="reg-stat purple">
-          <span className="reg-stat-num">{voci.filter(v=>v.tipo==='bonus').length}</span>
-          <span className="reg-stat-label">tipi di bonus</span>
-        </div>
-        <div className="reg-stat red">
-          <span className="reg-stat-num">{voci.filter(v=>v.tipo==='malus').length}</span>
-          <span className="reg-stat-label">tipi di malus</span>
-        </div>
-        <div className="reg-stat orange">
-          <span className="reg-stat-num">{maxMalus}</span>
-          <span className="reg-stat-label">massimo malus singolo</span>
-        </div>
+        {RUOLI.map(r => {
+          const b = voci.filter(v => v.categoria === r.id && v.tipo === 'bonus').length;
+          const m = voci.filter(v => v.categoria === r.id && v.tipo === 'malus').length;
+          return (
+            <div key={r.id} className="reg-stat" style={{borderColor: r.colore, cursor:'pointer'}} onClick={() => setRuoloAttivo(r.id)}>
+              <span style={{fontSize: 22}}>{r.emoji}</span>
+              <span className="reg-stat-num" style={{color: r.colore}}>{r.label}</span>
+              <span className="reg-stat-label">+{b} bonus · {m} malus</span>
+            </div>
+          );
+        })}
       </div>
 
-      {/* Filtro categorie */}
-      {categorie.length > 1 && (
-        <div className="giorni-filter" style={{ marginBottom: 24 }}>
-          <button className={`giorno-btn ${categoriaAttiva === null ? 'active' : ''}`} onClick={() => setCategoriaAttiva(null)}>Tutte</button>
-          {categorie.map(cat => (
-            <button key={cat} className={`giorno-btn ${categoriaAttiva === cat ? 'active' : ''}`} onClick={() => setCategoriaAttiva(cat)}>{cat}</button>
-          ))}
+      {/* Tab ruoli */}
+      <div className="reg-ruoli-tabs">
+        {RUOLI.map(r => (
+          <button
+            key={r.id}
+            className={`reg-ruolo-tab ${ruoloAttivo === r.id ? 'active' : ''}`}
+            style={ruoloAttivo === r.id ? { borderColor: r.colore, color: r.colore, background: r.colore + '18' } : {}}
+            onClick={() => setRuoloAttivo(r.id)}
+          >
+            <span className="reg-ruolo-tab-emoji">{r.emoji}</span>
+            <span>{r.label}</span>
+          </button>
+        ))}
+      </div>
+
+      {/* Titolo sezione ruolo */}
+      <div className="reg-ruolo-header" style={{borderLeftColor: ruoloInfo?.colore}}>
+        <span style={{fontSize: 28}}>{ruoloInfo?.emoji}</span>
+        <div>
+          <h3 style={{margin: 0, color: ruoloInfo?.colore}}>Bonus &amp; Malus — {ruoloInfo?.label}</h3>
+          <p style={{margin: 0, fontSize: 13, color: '#888'}}>
+            {bonus.length} azioni positive · {malus.length} azioni negative
+          </p>
         </div>
-      )}
+      </div>
 
       {/* Bonus */}
       {bonus.length > 0 && (
         <section className="section">
-          <h3 className="section-title">✅ Bonus — Come guadagnare punti</h3>
+          <h3 className="section-title">✅ Bonus — Punti guadagnati</h3>
           <div className="reg-list">
             {bonus.map((v, i) => <RegVoce key={i} voce={v} />)}
           </div>
@@ -135,20 +139,20 @@ export default function Regolamento() {
       {/* Malus */}
       {malus.length > 0 && (
         <section className="section">
-          <h3 className="section-title">❌ Malus — Come perdere punti</h3>
+          <h3 className="section-title">❌ Malus — Punti persi</h3>
           <div className="reg-list">
             {malus.map((v, i) => <RegVoce key={i} voce={v} />)}
           </div>
         </section>
       )}
 
-      {/* Nota finale */}
+      {/* Nota */}
       <div className="reg-nota">
         <span>💡</span>
-        <p>I bonus e malus vengono assegnati dalla staff a fine giornata. La staff ha sempre l'ultima parola e può aggiungere eventi speciali non presenti in questo elenco.</p>
+        <p>I bonus e malus vengono assegnati dalla staff a fine giornata. La staff ha sempre l'ultima parola e può aggiungere eventi speciali non in elenco.</p>
       </div>
 
-      {/* Footer oratorio */}
+      {/* Footer */}
       <div className="reg-footer">
         <span>⛪</span>
         <span>Oratorio San Carlo Acutis — Rotonda</span>
@@ -164,7 +168,6 @@ function RegVoce({ voce }) {
       <span className="reg-voce-emoji">{voce.emoji || (isBonus ? '✅' : '❌')}</span>
       <div className="reg-voce-content">
         <span className="reg-voce-desc">{voce.descrizione}</span>
-        {voce.categoria && <span className="reg-voce-cat">{voce.categoria}</span>}
       </div>
       <span className={`reg-voce-punti ${isBonus ? 'pos' : 'neg'}`}>{voce.punti}</span>
     </div>
