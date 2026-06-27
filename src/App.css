@@ -885,3 +885,431 @@ body {
   overflow-x: auto;
   line-height: 1.6;
 }
+
+/* ===== PAGINA ISCRIZIONE (pubblica) ===== */
+.iscrizione-page {
+  min-height: 100vh;
+  background: var(--bg);
+  padding-bottom: 48px;
+}
+
+.iscrizione-header {
+  background: linear-gradient(135deg, #2e1065 0%, #5b21b6 100%);
+  color: white;
+  padding: 20px 24px 18px;
+}
+.iscrizione-header-top {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  margin-bottom: 8px;
+}
+.iscrizione-intro {
+  font-size: 0.9rem;
+  opacity: 0.88;
+  margin-top: 4px;
+}
+
+.iscrizione-body {
+  max-width: 760px;
+  margin: 0 auto;
+  padding: 20px 16px;
+  display: flex;
+  flex-direction: column;
+  gap: 20px;
+}
+
+/* Form box dati squadra */
+.iscrizione-form-box {
+  background: var(--card);
+  border-radius: var(--radius);
+  padding: 20px;
+  box-shadow: var(--shadow);
+}
+.iscrizione-form-box h3 {
+  font-family: 'Fredoka One', cursive;
+  font-size: 1.1rem;
+  color: var(--viola);
+  margin-bottom: 14px;
+}
+.iscrizione-form-row {
+  display: flex;
+  gap: 12px;
+  flex-wrap: wrap;
+}
+.iscrizione-codice-row {
+  margin-top: 12px;
+}
+
+/* Ricerca */
+.iscrizione-cerca-box {
+  display: flex;
+  gap: 8px;
+  align-items: center;
+}
+.iscrizione-cerca {
+  flex: 1;
+  padding: 11px 16px;
+  border: 2px solid var(--border);
+  border-radius: var(--radius-sm);
+  font-size: 0.95rem;
+  font-family: 'Nunito', sans-serif;
+  transition: border-color 0.15s;
+  background: white;
+}
+.iscrizione-cerca:focus {
+  outline: none;
+  border-color: var(--viola-mid);
+}
+
+/* Sezioni ruolo */
+.iscrizione-ruoli {
+  display: flex;
+  flex-direction: column;
+  gap: 16px;
+}
+.iscrizione-sezione {
+  background: var(--card);
+  border-radius: var(--radius);
+  padding: 16px;
+  box-shadow: var(--shadow);
+}
+.iscrizione-sezione-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  font-family: 'Fredoka One', cursive;
+  font-size: 1.05rem;
+  color: var(--viola);
+  margin-bottom: 12px;
+}
+.iscrizione-sezione-count {
+  background: var(--viola-lt);
+  color: var(--viola);
+  border-radius: 20px;
+  padding: 2px 10px;
+  font-size: 0.85rem;
+}
+.iscrizione-cards {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+}
+.iscrizione-empty {
+  font-size: 0.88rem;
+  color: var(--text-2);
+  text-align: center;
+  padding: 12px 0;
+}
+
+/* Singola card personaggio */
+.iscrizione-card {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 10px 14px;
+  border-radius: var(--radius-sm);
+  border: 2px solid var(--border);
+  cursor: pointer;
+  transition: border-color 0.15s, background 0.15s, transform 0.1s;
+  background: white;
+}
+.iscrizione-card:hover:not(.disabled) {
+  border-color: var(--viola-mid);
+  background: var(--viola-lt);
+  transform: translateX(2px);
+}
+.iscrizione-card.selected {
+  border-color: var(--verde);
+  background: var(--verde-lt);
+}
+.iscrizione-card.disabled {
+  opacity: 0.45;
+  cursor: not-allowed;
+}
+.iscrizione-card-info {
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+}
+.iscrizione-card-nome {
+  font-weight: 700;
+  font-size: 0.95rem;
+}
+.iscrizione-card-id {
+  font-size: 0.75rem;
+  color: var(--text-2);
+  font-family: monospace;
+}
+.iscrizione-card-right {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+}
+.iscrizione-card-pts {
+  font-size: 0.82rem;
+  font-weight: 700;
+  color: var(--viola);
+  background: var(--viola-lt);
+  border-radius: 8px;
+  padding: 2px 8px;
+}
+.iscrizione-card-check {
+  font-size: 1.1rem;
+  color: var(--verde);
+  width: 20px;
+  text-align: center;
+}
+
+/* Risultato CSV */
+.iscrizione-risultato {
+  background: var(--card);
+  border-radius: var(--radius);
+  padding: 20px;
+  box-shadow: var(--shadow);
+}
+.iscrizione-risultato h3 {
+  font-family: 'Fredoka One', cursive;
+  font-size: 1.1rem;
+  color: var(--viola);
+  margin-bottom: 14px;
+}
+.iscrizione-stato-row {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+  margin-bottom: 16px;
+}
+.iscrizione-stato-badge {
+  font-size: 0.82rem;
+  font-weight: 700;
+  border-radius: 20px;
+  padding: 4px 12px;
+}
+.iscrizione-stato-badge.ok {
+  background: var(--verde-lt);
+  color: var(--verde);
+}
+.iscrizione-stato-badge.mancante {
+  background: var(--rosso-lt);
+  color: var(--rosso);
+}
+.iscrizione-avviso {
+  font-size: 0.9rem;
+  color: var(--text-2);
+  text-align: center;
+  padding: 12px;
+  background: var(--giallo-lt);
+  border-radius: var(--radius-sm);
+}
+.iscrizione-csv-box {
+  background: var(--viola-lt);
+  border-radius: var(--radius-sm);
+  padding: 16px;
+}
+.iscrizione-csv-label {
+  font-size: 0.82rem;
+  font-weight: 700;
+  color: var(--viola);
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+  margin-bottom: 10px;
+}
+.iscrizione-csv-riga {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  background: #1e1b4b;
+  border-radius: var(--radius-sm);
+  padding: 12px 14px;
+  margin-bottom: 10px;
+}
+.iscrizione-csv-riga code {
+  flex: 1;
+  color: #a5f3fc;
+  font-size: 0.82rem;
+  word-break: break-all;
+  font-family: monospace;
+}
+.iscrizione-csv-hint {
+  font-size: 0.82rem;
+  color: var(--viola);
+  font-weight: 600;
+}
+
+/* Utility buttons */
+.btn-secondary {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 6px;
+  padding: 10px 16px;
+  background: white;
+  color: var(--viola);
+  border: 2px solid var(--viola-mid);
+  border-radius: var(--radius-sm);
+  font-family: 'Fredoka One', cursive;
+  font-size: 0.95rem;
+  cursor: pointer;
+  transition: background 0.15s, color 0.15s;
+  width: 100%;
+}
+.btn-secondary:hover { background: var(--viola-lt); }
+
+.btn-ghost {
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+  padding: 6px 12px;
+  background: transparent;
+  color: var(--text-2);
+  border: 1px solid var(--border);
+  border-radius: var(--radius-sm);
+  font-size: 0.85rem;
+  cursor: pointer;
+  transition: background 0.15s;
+}
+.btn-ghost:hover { background: var(--border); }
+
+.btn-sm {
+  padding: 6px 14px !important;
+  font-size: 0.85rem !important;
+  width: auto !important;
+}
+.btn-success {
+  background: var(--verde) !important;
+  border-color: var(--verde) !important;
+  color: white !important;
+}
+
+/* Login divider */
+.login-divider {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  margin: 12px 0;
+  color: rgba(255,255,255,0.5);
+  font-size: 0.85rem;
+}
+.login-divider::before,
+.login-divider::after {
+  content: '';
+  flex: 1;
+  height: 1px;
+  background: rgba(255,255,255,0.25);
+}
+
+/* --text-muted alias */
+:root { --text-muted: #9ca3af; }
+
+/* ===== PAGINA PERSONAGGI ===== */
+.migliore-banner {
+  display: flex;
+  align-items: center;
+  gap: 14px;
+  background: linear-gradient(135deg, #fef3c7 0%, #fde68a 100%);
+  border: 2px solid var(--giallo);
+  border-radius: var(--radius);
+  padding: 16px 20px;
+  margin: 0 16px 16px;
+  cursor: pointer;
+  transition: transform 0.15s, box-shadow 0.15s;
+}
+.migliore-banner:hover { transform: translateY(-2px); box-shadow: var(--shadow); }
+.migliore-corona { font-size: 2rem; }
+.migliore-info { flex: 1; display: flex; flex-direction: column; gap: 2px; }
+.migliore-label { font-size: 0.72rem; font-weight: 700; color: #92400e; text-transform: uppercase; letter-spacing: 0.05em; }
+.migliore-nome { font-size: 1.1rem; font-weight: 800; color: #1e1b4b; }
+.migliore-ruolo { font-size: 0.8rem; color: #78350f; }
+.migliore-score { font-size: 1.5rem; font-weight: 900; color: var(--giallo); text-shadow: 0 1px 2px rgba(0,0,0,0.1); }
+
+.personaggi-ranking { display: flex; flex-direction: column; gap: 6px; padding: 0 16px 24px; }
+
+.pg-row {
+  background: var(--card);
+  border-radius: var(--radius-sm);
+  border: 2px solid var(--border);
+  overflow: hidden;
+  cursor: pointer;
+  transition: border-color 0.15s, box-shadow 0.15s;
+}
+.pg-row:hover { border-color: var(--viola-mid); box-shadow: 0 2px 12px rgba(91,33,182,0.08); }
+.pg-row.open { border-color: var(--viola-mid); }
+.pg-row.migliore { border-color: var(--giallo); background: linear-gradient(135deg, #fffbeb, #fff); }
+
+.pg-main {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  padding: 12px 14px;
+}
+.pg-pos { min-width: 28px; text-align: center; font-size: 1.1rem; }
+.pg-pos .pos-num { font-size: 0.85rem; font-weight: 700; color: var(--text-2); }
+.pg-avatar {
+  width: 36px; height: 36px;
+  border-radius: 50%;
+  border: 2px solid;
+  display: flex; align-items: center; justify-content: center;
+  font-size: 1.1rem;
+  flex-shrink: 0;
+}
+.pg-info { flex: 1; display: flex; flex-direction: column; gap: 2px; }
+.pg-nome { font-size: 0.95rem; font-weight: 700; color: var(--text); }
+.pg-ruolo { font-size: 0.75rem; font-weight: 600; }
+.pg-totale { display: flex; align-items: center; gap: 8px; }
+.pg-pts { font-size: 1.1rem; font-weight: 800; color: var(--viola-mid); }
+.pg-expand { font-size: 0.65rem; color: var(--text-2); }
+
+.pg-dettaglio {
+  padding: 0 14px 14px;
+  border-top: 1px solid var(--border);
+}
+.pg-giornate-title {
+  font-size: 0.78rem;
+  font-weight: 700;
+  color: var(--text-2);
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+  padding: 10px 0 8px;
+}
+.pg-giornate { display: flex; flex-direction: column; gap: 8px; }
+
+.pg-giorno-card {
+  background: var(--bg);
+  border-radius: var(--radius-sm);
+  padding: 10px 12px;
+  border: 1px solid var(--border);
+}
+.pg-giorno-card.best-day {
+  background: linear-gradient(135deg, #fffbeb, #fef3c7);
+  border-color: var(--giallo);
+}
+.pg-giorno-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 6px;
+}
+.pg-giorno-label { font-size: 0.82rem; font-weight: 700; color: var(--text); display: flex; align-items: center; gap: 4px; }
+.pg-giorno-tot { font-size: 1rem; font-weight: 800; color: var(--viola-mid); }
+.best-star { font-size: 0.85rem; }
+
+.pg-giorno-voto {
+  display: flex;
+  justify-content: space-between;
+  font-size: 0.8rem;
+  color: var(--text-2);
+  padding: 3px 0;
+}
+.pg-bm-row {
+  display: flex;
+  justify-content: space-between;
+  font-size: 0.8rem;
+  padding: 3px 0;
+  border-top: 1px solid var(--border);
+}
+.pg-bm-row.bonus { color: #065f46; }
+.pg-bm-row.malus { color: #991b1b; }
+.pg-bm-row .pos { font-weight: 700; color: var(--verde); }
+.pg-bm-row .neg { font-weight: 700; color: var(--rosso); }
+.pg-empty { font-size: 0.85rem; color: var(--text-2); padding: 10px 0; text-align: center; }

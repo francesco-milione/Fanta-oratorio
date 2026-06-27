@@ -1,5 +1,6 @@
 id_personaggio,giorno,punti,descrizione,tipo
 EDU001,1,+3,Ha organizzato il gioco finale,bonus
+EDU001,1,+3,Ha organizzato il gioco,bonus
 ANI004,1,+2,Miglior animatore del giorno,bonus
 BAM006,1,+2,Ha aiutato un compagno,bonus
 ANI003,1,-1,In ritardo alla preghiera,malus

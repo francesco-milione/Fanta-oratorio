@@ -2,7 +2,7 @@ import React, { useState } from 'react';
 import { useAuth } from '../context/AuthContext';
 import { useData } from '../context/DataContext';
 
-export default function LoginPage() {
+export default function LoginPage({ onIscrizione }) {
   const [codice, setCodice] = useState('');
   const [errore, setErrore] = useState('');
   const [loading, setLoading] = useState(false);
@@ -71,6 +71,12 @@ export default function LoginPage() {
 
             <button className="btn-primary" onClick={handleSubmit} disabled={loading}>
               {loading ? <><div className="spinner-sm" /> Accesso…</> : '🏆 Entra nella tua squadra'}
+            </button>
+
+            <div className="login-divider"><span>oppure</span></div>
+
+            <button className="btn-secondary" onClick={onIscrizione}>
+              📝 Crea la tua squadra
             </button>
           </>
         )}

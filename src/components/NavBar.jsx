@@ -1,7 +1,7 @@
 import React from 'react';
 import { useAuth } from '../context/AuthContext';
 
-export default function NavBar({ pagina, setPagina }) {
+export default function NavBar({ pagina, setPagina, onIscrizione }) {
   const { utente, logout } = useAuth();
 
   return (
@@ -23,6 +23,9 @@ export default function NavBar({ pagina, setPagina }) {
         </button>
         <button className={`nav-tab ${pagina === 'regolamento' ? 'active' : ''}`} onClick={() => setPagina('regolamento')}>
           <span>📋</span><span>Regole</span>
+        </button>
+        <button className={`nav-tab ${pagina === 'personaggi' ? 'active' : ''}`} onClick={() => setPagina('personaggi')}>
+          <span>🎭</span><span>Personaggi</span>
         </button>
       </div>
 
