@@ -1,13 +1,13 @@
 {
   "files": {
-    "main.css": "/Fanta-oratorio/static/css/main.43135d6c.css",
-    "main.js": "/Fanta-oratorio/static/js/main.0c7ba7ca.js",
+    "main.css": "/Fanta-oratorio/static/css/main.bf641fd7.css",
+    "main.js": "/Fanta-oratorio/static/js/main.6eecbffe.js",
     "index.html": "/Fanta-oratorio/index.html",
-    "main.43135d6c.css.map": "/Fanta-oratorio/static/css/main.43135d6c.css.map",
-    "main.0c7ba7ca.js.map": "/Fanta-oratorio/static/js/main.0c7ba7ca.js.map"
+    "main.bf641fd7.css.map": "/Fanta-oratorio/static/css/main.bf641fd7.css.map",
+    "main.6eecbffe.js.map": "/Fanta-oratorio/static/js/main.6eecbffe.js.map"
   },
   "entrypoints": [
-    "static/css/main.43135d6c.css",
-    "static/js/main.0c7ba7ca.js"
+    "static/css/main.bf641fd7.css",
+    "static/js/main.6eecbffe.js"
   ]
 }
