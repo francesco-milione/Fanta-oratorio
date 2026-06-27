@@ -4,9 +4,13 @@ on:
   push:
     branches: [main]
 
+permissions:
+  contents: write
+
 jobs:
   build-and-deploy:
     runs-on: ubuntu-latest
+
     steps:
       - uses: actions/checkout@v4
 
@@ -16,7 +20,7 @@ jobs:
           node-version: 20
           cache: npm
 
-      - name: Install
+      - name: Install dependencies
         run: npm ci
 
       - name: Build
@@ -26,4 +30,4 @@ jobs:
         uses: peaceiris/actions-gh-pages@v3
         with:
           github_token: ${{ secrets.GITHUB_TOKEN }}
-          publish_dir: ./build
+          publish_dir: ./dist   # oppure ./build
