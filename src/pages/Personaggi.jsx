@@ -2,9 +2,10 @@ import React, { useState, useMemo } from 'react';
 import { useData } from '../context/DataContext';
 
 const RUOLO_CONFIG = {
-  educatore: { label: 'Educatore', emoji: '🙏', color: '#6c63ff' },
-  animatore:  { label: 'Animatore', emoji: '🎮', color: '#f59e0b' },
-  bambino:    { label: 'Bambino',   emoji: '⭐', color: '#10b981' },
+  educatore:          { label: 'Educatore',       emoji: '🙏',  color: '#6c63ff' },
+  animatore:          { label: 'Animatore',        emoji: '🎮',  color: '#f59e0b' },
+  'pre animatore':    { label: 'Pre Animatore',    emoji: '🌱',  color: '#10b981' },
+  'amico san carlo':  { label: 'Amico San Carlo',  emoji: '✝️',  color: '#ec4899' },
 };
 
 function getRuoloCfg(ruolo) {

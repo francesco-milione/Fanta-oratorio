@@ -7,6 +7,7 @@ export default function LoginPage({ onIscrizione }) {
   const [password, setPassword] = useState('');
   const [errore, setErrore] = useState('');
   const [loading, setLoading] = useState(false);
+  const [dimenticato, setDimenticato] = useState(false);
   const { login } = useAuth();
   const { loading: dataLoading, error: dataError } = useData();
 
@@ -91,6 +92,23 @@ export default function LoginPage({ onIscrizione }) {
             <button className="btn-primary" onClick={handleSubmit} disabled={loading}>
               {loading ? <><div className="spinner-sm" /> Accesso…</> : '🏆 Entra nella tua squadra'}
             </button>
+
+            <div style={{ textAlign: 'center', marginTop: 12 }}>
+              {!dimenticato ? (
+                <button
+                  className="btn-ghost"
+                  style={{ fontSize: 13, color: 'var(--text-muted)' }}
+                  onClick={() => setDimenticato(true)}
+                >
+                  Hai dimenticato la password?
+                </button>
+              ) : (
+                <div style={{ fontSize: 13, color: 'var(--text-muted)', padding: '8px 12px', background: 'var(--bg-subtle, #f3f4f6)', borderRadius: 10 }}>
+                  🙏 <em>«Chiedete e vi sarà dato»</em> — Mt 7,7<br />
+                  <span style={{ fontSize: 12 }}>Chiedi a chi gestisce il gioco!</span>
+                </div>
+              )}
+            </div>
 
             <div className="login-divider"><span>oppure</span></div>
 

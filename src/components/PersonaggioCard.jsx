@@ -3,9 +3,8 @@ import { SQUADRE_LABEL } from '../context/DataContext';
 
 const RUOLO_CONFIG = {
   educatore:         { label: 'Educatore',       emoji: '🙏',  color: '#6c63ff' },
-  animatore1:        { label: 'Animatore',        emoji: '🎮',  color: '#f59e0b' },
-  animatore2:        { label: 'Animatore',        emoji: '🎮',  color: '#f59e0b' },
-  'pre animatore':   { label: 'Pre animatore',    emoji: '🌱',  color: '#10b981' },
+  animatore:         { label: 'Animatore',        emoji: '🎮',  color: '#f59e0b' },
+  'pre animatore':   { label: 'Pre Animatore',    emoji: '🌱',  color: '#10b981' },
   'amico san carlo': { label: 'Amico San Carlo',  emoji: '✝️',  color: '#ec4899' },
 };
 

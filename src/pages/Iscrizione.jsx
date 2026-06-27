@@ -240,14 +240,24 @@ export default function Iscrizione({ onTornaLogin, modalitaPostLogin = false, ut
             <div className="iscrizione-codice-row">
               <div className="input-group">
                 <label>Proprietario</label>
-                <div style={{ fontWeight: 600, fontSize: 15, color: 'var(--text)' }}>
+                <div style={{ fontWeight: 600, fontSize: 15, color: 'var(--text)', marginBottom: 12 }}>
                   {proprietario}
                 </div>
-                <label style={{ marginTop: 12 }}>Il tuo codice di accesso</label>
-                <div style={{ fontFamily: 'monospace', fontWeight: 700, letterSpacing: 3, fontSize: 20, color: 'var(--primary)' }}>
-                  {codice}
+                <div style={{ display: 'flex', gap: 16, flexWrap: 'wrap' }}>
+                  <div>
+                    <label>Username</label>
+                    <div style={{ fontFamily: 'monospace', fontWeight: 700, letterSpacing: 3, fontSize: 20, color: 'var(--primary)' }}>
+                      {codice}
+                    </div>
+                  </div>
+                  <div>
+                    <label>Password</label>
+                    <div style={{ fontFamily: 'monospace', fontWeight: 700, letterSpacing: 3, fontSize: 20, color: 'var(--primary)' }}>
+                      {utenteLoggato?.password || codice}
+                    </div>
+                  </div>
                 </div>
-                <p className="input-hint">Usalo sempre per entrare nell'app.</p>
+                <p className="input-hint">Usali sempre per entrare nell'app.</p>
               </div>
             </div>
           ) : (
