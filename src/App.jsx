@@ -70,6 +70,11 @@ function AppContent({ vistaGlobale, setVistaGlobale }) {
       {pagina === 'giornata'   && <Giornata />}
       {pagina === 'regolamento'&& <Regolamento />}
       {pagina === 'personaggi' && <Personaggi />}
+      <footer className="app-footer">
+        <span>⛪ Oratorio Parrocchiale San Carlo Acutis · Rotonda</span>
+        <span className="app-footer-sep">·</span>
+        <span>App creata da <b>Francesco Milione</b></span>
+      </footer>
     </div>
   );
 }

@@ -226,6 +226,37 @@ body {
 .navbar-brand span:first-child { font-size: 1.4rem; }
 .brand-text b { color: var(--giallo); }
 
+.brand-stack {
+  display: flex;
+  flex-direction: column;
+  line-height: 1.1;
+}
+.brand-sub {
+  font-family: 'Nunito', sans-serif;
+  font-size: 0.6rem;
+  font-weight: 700;
+  color: var(--text-2);
+  letter-spacing: 0.01em;
+  white-space: nowrap;
+}
+
+/* ===== APP FOOTER ===== */
+.app-footer {
+  text-align: center;
+  padding: 18px 16px 24px;
+  font-size: 0.75rem;
+  color: var(--text-2);
+  border-top: 1px solid var(--border);
+  margin-top: 32px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  flex-wrap: wrap;
+  gap: 6px;
+}
+.app-footer b { color: var(--viola); }
+.app-footer-sep { color: var(--border); }
+
 .navbar-tabs {
   display: flex;
   gap: 4px;
@@ -298,36 +329,41 @@ body {
 
 /* ===== SQUADRA HERO ===== */
 .squadra-hero {
-  background: linear-gradient(135deg, var(--viola), var(--viola-mid));
+  background: linear-gradient(135deg, #2e1065, var(--viola), var(--viola-mid));
   border-radius: 24px;
-  padding: 24px 24px;
-  display: flex;
-  align-items: center;
-  gap: 16px;
+  padding: 20px 20px 0;
   margin-bottom: 28px;
   color: white;
   position: relative;
   overflow: hidden;
+  box-shadow: var(--shadow-lg);
 }
 .squadra-hero::before {
   content: '⛪';
   position: absolute;
-  right: 16px; top: 50%;
-  transform: translateY(-50%);
-  font-size: 80px;
-  opacity: 0.12;
+  right: 12px; top: 12px;
+  font-size: 90px;
+  opacity: 0.08;
   pointer-events: none;
+  line-height: 1;
+}
+
+/* Top row: badge + info + modifica */
+.squadra-hero-top {
+  display: flex;
+  align-items: center;
+  gap: 14px;
 }
 .squadra-badge {
   background: var(--giallo);
   color: var(--viola);
   font-family: 'Fredoka One', cursive;
-  font-size: 1.4rem;
-  width: 56px; height: 56px;
+  font-size: 1.3rem;
+  width: 52px; height: 52px;
   border-radius: 50%;
   display: flex; align-items: center; justify-content: center;
   flex-shrink: 0;
-  box-shadow: 0 4px 12px rgba(0,0,0,0.2);
+  box-shadow: 0 4px 14px rgba(0,0,0,0.25);
 }
 .squadra-info { flex: 1; min-width: 0; overflow: hidden; }
 .squadra-nome {
@@ -336,15 +372,56 @@ body {
   white-space: nowrap; overflow: hidden; text-overflow: ellipsis;
   max-width: 100%;
 }
-.squadra-owner { font-size: 0.85rem; opacity: 0.85; margin-top: 2px; }
-.squadra-totale { text-align: right; flex-shrink: 0; }
+.squadra-owner { font-size: 0.82rem; opacity: 0.8; margin-top: 2px; }
+
+.btn-modifica-hero {
+  flex-shrink: 0;
+  background: rgba(255,255,255,0.18);
+  color: white;
+  border: 1.5px solid rgba(255,255,255,0.35);
+  border-radius: 10px;
+  padding: 7px 13px;
+  font-size: 0.8rem;
+  font-family: 'Nunito', sans-serif;
+  font-weight: 700;
+  cursor: pointer;
+  transition: background 0.15s, border-color 0.15s;
+  white-space: nowrap;
+}
+.btn-modifica-hero:hover {
+  background: rgba(255,255,255,0.28);
+  border-color: rgba(255,255,255,0.6);
+}
+
+/* Squadra oratorio tag */
+.squadra-oratorio-tag {
+  display: inline-flex;
+  align-items: center;
+  gap: 5px;
+  margin: 12px 0 0;
+  padding: 4px 12px;
+  border-radius: 100px;
+  border: 1.5px solid;
+  font-size: 0.78rem;
+  font-weight: 700;
+  backdrop-filter: blur(4px);
+}
+
+/* Bottom strip: punti */
+.squadra-hero-bottom {
+  margin-top: 16px;
+  padding: 12px 0;
+  border-top: 1px solid rgba(255,255,255,0.15);
+  display: flex;
+  align-items: baseline;
+  gap: 8px;
+}
 .totale-num {
-  display: block;
   font-family: 'Fredoka One', cursive;
-  font-size: 2rem;
+  font-size: 2.2rem;
   line-height: 1;
 }
-.totale-label { font-size: 0.72rem; opacity: 0.8; text-transform: uppercase; letter-spacing: 0.05em; }
+.totale-label { font-size: 0.72rem; opacity: 0.7; text-transform: uppercase; letter-spacing: 0.06em; }
 
 /* ===== SECTIONS ===== */
 .section { margin-bottom: 32px; }
@@ -415,6 +492,62 @@ body {
   font-size: 0.72rem;
   color: var(--text-2);
 }
+
+/* ===== MIA SQUADRA — cards con BM integrati ===== */
+.ms-cards { display: flex; flex-direction: column; gap: 10px; }
+
+.ms-card {
+  background: var(--card);
+  border-radius: var(--radius);
+  border: 1.5px solid var(--border);
+  overflow: hidden;
+  box-shadow: 0 2px 12px rgba(91,33,182,0.07);
+}
+
+.ms-card-header {
+  display: flex;
+  align-items: center;
+  gap: 14px;
+  padding: 14px 16px;
+}
+
+.ms-card-header.clickable { cursor: pointer; }
+.ms-card-header.clickable:hover { background: var(--viola-lt); }
+.ms-arrow { font-size: 0.6rem; color: var(--text-2); flex-shrink: 0; margin-left: 4px; }
+
+.ms-bm-giorni {
+  padding: 10px 16px 12px 16px;
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  border-top: 1px solid var(--border);
+}
+
+.ms-bm-giorno-label {
+  display: block;
+  font-size: 0.7rem;
+  font-weight: 800;
+  text-transform: uppercase;
+  letter-spacing: 0.06em;
+  color: var(--text-2);
+  margin-bottom: 4px;
+}
+
+.ms-bm-item {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  font-size: 0.85rem;
+  padding: 5px 8px;
+  border-radius: 8px;
+}
+.ms-bm-item.bonus { background: #f0fdf4; }
+.ms-bm-item.malus { background: #fff5f5; }
+.ms-bm-icon { font-size: 0.85rem; flex-shrink: 0; }
+.ms-bm-desc { flex: 1; color: var(--text); font-weight: 600; }
+.ms-bm-pts { font-family: 'Fredoka One', cursive; font-size: 0.95rem; flex-shrink: 0; }
+.ms-bm-pts.pos { color: var(--verde); }
+.ms-bm-pts.neg { color: var(--rosso); }
 
 /* ===== BONUS MALUS LIST ===== */
 .giorni-filter { display: flex; gap: 6px; flex-wrap: wrap; }
@@ -776,8 +909,12 @@ body {
   }
 
   /* Squadra */
-  .squadra-hero { padding: 16px; gap: 12px; }
-  .totale-num { font-size: 1.6rem; }
+  .squadra-hero { padding: 16px 16px 0; }
+  .squadra-hero-top { gap: 10px; }
+  .squadra-badge { width: 44px; height: 44px; font-size: 1.1rem; }
+  .squadra-nome { font-size: 1.1rem; }
+  .totale-num { font-size: 1.8rem; }
+  .btn-modifica-hero { padding: 6px 10px; font-size: 0.75rem; }
 
   /* Classifica */
   .cl-main { padding: 12px 14px; gap: 10px; }

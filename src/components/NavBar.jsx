@@ -8,7 +8,10 @@ export default function NavBar({ pagina, setPagina, onIscrizione }) {
     <nav className="navbar">
       <div className="navbar-brand">
         <span>⛪</span>
-        <span className="brand-text">Fanta<b>Oratorio</b></span>
+        <div className="brand-stack">
+          <span className="brand-text">Fanta<b>Oratorio</b></span>
+          <span className="brand-sub">Oratorio S. Carlo Acutis · Rotonda</span>
+        </div>
       </div>
 
       <div className="navbar-tabs">

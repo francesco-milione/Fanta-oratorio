@@ -2,20 +2,19 @@ import React, { useState } from 'react';
 import { useAuth } from '../context/AuthContext';
 import { useData } from '../context/DataContext';
 import { SQUADRE_LABEL } from '../context/DataContext';
-import { PersonaggioCard, SquadraCard } from '../components/PersonaggioCard';
 
 const RUOLI = [
-  { key: 'educatore',       label: 'Educatore',       emoji: '🙏' },
-  { key: 'animatore1',      label: 'Animatore 1',     emoji: '🎮' },
-  { key: 'animatore2',      label: 'Animatore 2',     emoji: '🎮' },
-  { key: 'pre animatore',   label: 'Pre animatore',   emoji: '🌱' },
-  { key: 'amico san carlo', label: 'Amico San Carlo', emoji: '✝️' },
+  { key: 'educatore',       label: 'Educatore',       emoji: '🙏',  color: '#6c63ff' },
+  { key: 'animatore1',      label: 'Animatore 1',     emoji: '🎮',  color: '#f59e0b' },
+  { key: 'animatore2',      label: 'Animatore 2',     emoji: '🎮',  color: '#f59e0b' },
+  { key: 'pre animatore',   label: 'Pre animatore',   emoji: '🌱',  color: '#10b981' },
+  { key: 'amico san carlo', label: 'Amico San Carlo', emoji: '✝️',  color: '#ec4899' },
 ];
 
 export default function MiaSquadra({ onModifica }) {
   const { utente } = useAuth();
   const { personaggi, classifica, bonusMalus, giorni, getPersonaggioScore } = useData();
-  const [giornoSelezionato, setGiornoSelezionato] = useState(null);
+  const [aperto, setAperto] = useState({});
 
   const squadraInClassifica = classifica.find(g => g.codice === utente?.codice);
   const posizione = squadraInClassifica?.posizione ?? '—';
@@ -25,111 +24,163 @@ export default function MiaSquadra({ onModifica }) {
   const squadraOratorio = utente?.['squadra-oratorio'];
   const squadraInfo = squadraOratorio ? SQUADRE_LABEL[squadraOratorio] : null;
 
+  // Bonus/malus per personaggio, raggruppati per giorno
+  const getBmPerPersonaggio = (id) =>
+    bonusMalus
+      .filter(b => b.id_personaggio === id)
+      .sort((a, b) => parseInt(a.giorno) - parseInt(b.giorno));
+
+  const getBmPerSquadra = () =>
+    squadraOratorio
+      ? bonusMalus
+          .filter(b => b.id_personaggio.toLowerCase() === squadraOratorio.toLowerCase())
+          .sort((a, b) => parseInt(a.giorno) - parseInt(b.giorno))
+      : [];
+
+  const toggleAperto = (key) => setAperto(prev => ({ ...prev, [key]: !prev[key] }));
+
+  const renderBmList = (bmList, key) => {
+    if (bmList.length === 0) return null;
+    const isOpen = !!aperto[key];
+    // Raggruppa per giorno
+    const perGiorno = {};
+    bmList.forEach(b => {
+      if (!perGiorno[b.giorno]) perGiorno[b.giorno] = [];
+      perGiorno[b.giorno].push(b);
+    });
+    return isOpen ? (
+      <div className="ms-bm-giorni">
+        {Object.keys(perGiorno).sort((a, b) => parseInt(a) - parseInt(b)).map(g => (
+          <div key={g} className="ms-bm-giorno">
+            <span className="ms-bm-giorno-label">Giorno {g}</span>
+            {perGiorno[g].map((b, i) => {
+              const pts = parseFloat((b.punti || '0').replace('+', ''));
+              return (
+                <div key={i} className={`ms-bm-item ${b.tipo}`}>
+                  <span className="ms-bm-icon">{b.tipo === 'bonus' ? '✅' : '❌'}</span>
+                  <span className="ms-bm-desc">{b.descrizione}</span>
+                  <span className={`ms-bm-pts ${pts >= 0 ? 'pos' : 'neg'}`}>
+                    {pts > 0 ? '+' : ''}{pts}
+                  </span>
+                </div>
+              );
+            })}
+          </div>
+        ))}
+      </div>
+    ) : null;
+  };
+
   const renderPersonaggio = (ruolo) => {
     const id = utente?.[ruolo.key];
     if (!id) return null;
     const personaggio = personaggi.find(p => p.id === id);
     const score = getPersonaggioScore(id);
+    const bm = score?.totaleBM ?? 0;
+    const bmList = getBmPerPersonaggio(id);
+
+    const hasBm = bmList.length > 0;
     return (
-      <PersonaggioCard key={ruolo.key} id={id} nome={personaggio?.nome} ruolo={ruolo.key} score={score} />
+      <div key={ruolo.key} className="ms-card">
+        <div
+          className={`ms-card-header ${hasBm ? 'clickable' : ''}`}
+          onClick={hasBm ? () => toggleAperto(ruolo.key) : undefined}
+        >
+          <div className="personaggio-avatar" style={{ background: ruolo.color + '22', borderColor: ruolo.color }}>
+            <span>{ruolo.emoji}</span>
+          </div>
+          <div className="personaggio-info">
+            <span className="personaggio-ruolo" style={{ color: ruolo.color }}>{ruolo.label}</span>
+            <span className="personaggio-nome">{personaggio?.nome || id}</span>
+          </div>
+          <div className="personaggio-score">
+            <span className="score-big" style={{ color: bm < 0 ? '#ef4444' : bm > 0 ? '#10b981' : '#888' }}>
+              {bm > 0 ? '+' : ''}{bm.toFixed(1)}
+            </span>
+            <span className="score-sub">bonus/malus</span>
+          </div>
+          {hasBm && (
+            <span className="ms-arrow">{aperto[ruolo.key] ? '▲' : '▼'}</span>
+          )}
+        </div>
+        {renderBmList(bmList, ruolo.key)}
+      </div>
     );
   };
 
-  // Bonus/malus personaggi + squadra oratorio, filtrati per giorno
-  const myIds = RUOLI.map(r => utente?.[r.key]).filter(Boolean);
-  const bmPersonaggi = bonusMalus.filter(b =>
-    myIds.includes(b.id_personaggio) &&
-    (giornoSelezionato === null || b.giorno === String(giornoSelezionato))
-  );
-  const bmSquadra = squadraOratorio ? bonusMalus.filter(b =>
-    b.id_personaggio.toLowerCase() === squadraOratorio.toLowerCase() &&
-    (giornoSelezionato === null || b.giorno === String(giornoSelezionato))
-  ) : [];
-  const bmFiltrati = [...bmPersonaggi, ...bmSquadra]
-    .sort((a, b) => parseInt(a.giorno) - parseInt(b.giorno));
+  const renderSquadra = () => {
+    if (!squadraOratorio || !squadraInfo) return null;
+    const voto = squadraScore?.votoBase ?? 0;
+    const bm = squadraScore?.totaleBM ?? 0;
+    const totaleS = squadraScore?.totale ?? 0;
+    const bmList = getBmPerSquadra();
+
+    const hasBm = bmList.length > 0;
+    return (
+      <div className="ms-card">
+        <div
+          className={`ms-card-header ${hasBm ? 'clickable' : ''}`}
+          onClick={hasBm ? () => toggleAperto('squadra') : undefined}
+        >
+          <div className="personaggio-avatar" style={{ background: squadraInfo.colore + '22', borderColor: squadraInfo.colore }}>
+            <span style={{ fontSize: 22 }}>{squadraInfo.emoji}</span>
+          </div>
+          <div className="personaggio-info">
+            <span className="personaggio-ruolo" style={{ color: squadraInfo.colore }}>Squadra Oratorio</span>
+            <span className="personaggio-nome">{squadraInfo.label}</span>
+            {bm !== 0 && (
+              <span style={{ fontSize: 11, color: '#888', marginTop: 2 }}>
+                voto {voto.toFixed(1)} {bm > 0 ? '+' : ''}{bm.toFixed(1)} bm
+              </span>
+            )}
+          </div>
+          <div className="personaggio-score">
+            <span className="score-big" style={{ color: totaleS < 0 ? '#ef4444' : totaleS > 0 ? '#10b981' : '#888' }}>
+              {totaleS.toFixed(1)}
+            </span>
+            <span className="score-sub">{squadraScore?.numGiorni ?? 0} gior.</span>
+          </div>
+          {hasBm && <span className="ms-arrow">{aperto['squadra'] ? '▲' : '▼'}</span>}
+        </div>
+        {renderBmList(bmList, 'squadra')}
+      </div>
+    );
+  };
 
   return (
     <div className="page">
-      {/* Header */}
+      {/* Hero card */}
       <div className="squadra-hero">
-        <div className="squadra-badge">#{posizione}</div>
-        <div className="squadra-info">
-          <h2 className="squadra-nome">{utente?.['nome-squadra']}</h2>
-          <p className="squadra-owner">di {utente?.proprietario}</p>
-          {squadraInfo && (
-            <p style={{ margin: '4px 0 0', fontSize: 13, color: squadraInfo.colore, fontWeight: 600 }}>
-              {squadraInfo.emoji} {squadraInfo.label}
-            </p>
-          )}
-        </div>
-        <div className="squadra-totale">
-          <span className="totale-num">{totale.toFixed(1)}</span>
-          <span className="totale-label">punti totali</span>
+        <div className="squadra-hero-top">
+          <div className="squadra-badge">#{posizione}</div>
+          <div className="squadra-info">
+            <h2 className="squadra-nome">{utente?.['nome-squadra']}</h2>
+            <p className="squadra-owner">di {utente?.proprietario}</p>
+          </div>
           {onModifica && (
-            <button
-              className="btn-secondary btn-sm"
-              onClick={onModifica}
-              style={{ marginTop: 8, fontSize: 12 }}
-            >
+            <button className="btn-modifica-hero" onClick={onModifica} title="Modifica squadra">
               ✏️ Modifica
             </button>
           )}
         </div>
-      </div>
-
-      {/* Formazione: 5 personaggi + squadra oratorio */}
-      <section className="section">
-        <h3 className="section-title">La tua formazione</h3>
-        <div className="personaggi-grid">
-          {RUOLI.map(r => renderPersonaggio(r))}
-          {squadraOratorio && (
-            <SquadraCard squadraOratorio={squadraOratorio} squadraScore={squadraScore} />
-          )}
-        </div>
-      </section>
-
-      {/* Bonus/malus */}
-      <section className="section">
-        <div className="section-header-row">
-          <h3 className="section-title">Bonus & Malus</h3>
-          <div className="giorni-filter">
-            <button className={`giorno-btn ${giornoSelezionato === null ? 'active' : ''}`} onClick={() => setGiornoSelezionato(null)}>Tutti</button>
-            {giorni.map(g => (
-              <button key={g} className={`giorno-btn ${giornoSelezionato === parseInt(g) ? 'active' : ''}`} onClick={() => setGiornoSelezionato(parseInt(g))}>G{g}</button>
-            ))}
-          </div>
-        </div>
-
-        {bmFiltrati.length === 0 ? (
-          <div className="empty-state">
-            <span>🎯</span>
-            <p>Nessun bonus o malus {giornoSelezionato ? `per il giorno ${giornoSelezionato}` : 'ancora'}</p>
-          </div>
-        ) : (
-          <div className="bm-list">
-            {bmFiltrati.map((b, i) => {
-              const pts = parseFloat((b.punti || '0').replace('+', ''));
-              const sqInfo = SQUADRE_LABEL[b.id_personaggio?.toLowerCase()];
-              const personaggio = sqInfo ? null : personaggi.find(p => p.id === b.id_personaggio);
-              const nomeDisplay = sqInfo
-                ? `${sqInfo.emoji} Squadra ${sqInfo.label}`
-                : (personaggio?.nome || b.id_personaggio);
-              return (
-                <div key={i} className={`bm-item ${b.tipo === 'bonus' ? 'bonus' : 'malus'}`}>
-                  <div className="bm-icon">{b.tipo === 'bonus' ? '✅' : '❌'}</div>
-                  <div className="bm-content">
-                    <span className="bm-nome">{nomeDisplay}</span>
-                    <span className="bm-desc">{b.descrizione}</span>
-                    <span className="bm-giorno-tag">Giorno {b.giorno}</span>
-                  </div>
-                  <div className={`bm-punti ${pts >= 0 ? 'pos' : 'neg'}`}>
-                    {pts > 0 ? '+' : ''}{pts}
-                  </div>
-                </div>
-              );
-            })}
+        {squadraInfo && (
+          <div className="squadra-oratorio-tag" style={{ background: squadraInfo.colore + '28', color: squadraInfo.colore, borderColor: squadraInfo.colore + '55' }}>
+            {squadraInfo.emoji} {squadraInfo.label}
           </div>
         )}
+        <div className="squadra-hero-bottom">
+          <span className="totale-num">{totale.toFixed(1)}</span>
+          <span className="totale-label">punti totali</span>
+        </div>
+      </div>
+
+      {/* Formazione con bonus/malus integrati */}
+      <section className="section">
+        <h3 className="section-title">La tua formazione</h3>
+        <div className="ms-cards">
+          {RUOLI.map(r => renderPersonaggio(r))}
+          {renderSquadra()}
+        </div>
       </section>
     </div>
   );
