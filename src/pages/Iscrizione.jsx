@@ -260,12 +260,7 @@ export default function Iscrizione({ onTornaLogin, modalitaPostLogin = false, ut
                       {codice}
                     </div>
                   </div>
-                  <div>
-                    <label>Password</label>
-                    <div style={{ fontFamily: 'monospace', fontWeight: 700, letterSpacing: 3, fontSize: 20, color: 'var(--primary)' }}>
-                      {utenteLoggato?.password || codice}
-                    </div>
-                  </div>
+
                 </div>
                 <p className="input-hint">Usali sempre per entrare nell'app.</p>
               </div>
