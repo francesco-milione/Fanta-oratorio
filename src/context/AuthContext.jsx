@@ -1,5 +1,6 @@
 import React, { createContext, useContext, useState } from 'react';
 import { useData } from './DataContext';
+import { supabase } from '../supabaseClient';
 
 const AuthContext = createContext(null);
 
@@ -13,47 +14,54 @@ export function AuthProvider({ children }) {
 
   const { giocatori, utenti, loading } = useData();
 
+  // primo accesso = loggato, non admin, password non ancora impostata
+  // (vale sia per chi non ha ancora la squadra, sia per chi ce l'ha ma non ha mai cambiato)
+  const primoAccesso = !!(utente && !utente.isAdmin && !utente.password);
+
   const buildUtente = (utenteBase, giocatoriList) => {
-    // Cerca se questo utente ha già una squadra in giocatori.csv (stesso codice)
     const team = giocatoriList.find(
       g => g.codice?.trim().toUpperCase() === utenteBase.codice?.trim().toUpperCase()
     );
-    if (team) {
-      return { ...utenteBase, ...team, hasTeam: true };
-    }
+    if (team) return { ...utenteBase, ...team, hasTeam: true };
     return { ...utenteBase, hasTeam: false };
   };
 
-  const login = (codice) => {
-    const cod = codice.trim().toUpperCase();
+  const _salvaUtente = (u) => {
+    setUtente(u);
+    sessionStorage.setItem('fanta_utente', JSON.stringify(u));
+  };
+
+  const login = (username, password) => {
+    const user = username.trim().toUpperCase();
+    const pass = password.trim().toUpperCase();
 
     // Admin
-    if (cod === 'ADMIN2026') {
+    if (user === 'ADMIN2026') {
+      if (pass !== 'ADMIN2026') return { ok: false, errore: 'Password errata.' };
       const admin = { codice: 'ADMIN2026', isAdmin: true, nome_squadra: 'Admin' };
-      setUtente(admin);
-      sessionStorage.setItem('fanta_utente', JSON.stringify(admin));
+      _salvaUtente(admin);
       return { ok: true };
     }
 
-    // Controlla utenti.csv (login personale con password pre-assegnata)
-    const utenteFound = utenti.find(u => u.codice?.trim().toUpperCase() === cod);
-    if (utenteFound) {
-      const u = buildUtente(utenteFound, giocatori);
-      setUtente(u);
-      sessionStorage.setItem('fanta_utente', JSON.stringify(u));
-      return { ok: true };
+    // Trova l'utente per username (codice)
+    const utenteFound = utenti.find(u => u.codice?.trim().toUpperCase() === user);
+    const teamFound = giocatori.find(g => g.codice?.trim().toUpperCase() === user);
+
+    if (!utenteFound && !teamFound) {
+      return { ok: false, errore: 'Username non riconosciuto.' };
     }
 
-    // Fallback: controlla giocatori.csv direttamente (compatibilità vecchi codici squadra)
-    const teamFound = giocatori.find(g => g.codice?.trim().toUpperCase() === cod);
-    if (teamFound) {
-      const u = { ...teamFound, hasTeam: true };
-      setUtente(u);
-      sessionStorage.setItem('fanta_utente', JSON.stringify(u));
-      return { ok: true };
+    // Controlla password: usa giocatori.password se impostata, altrimenti il codice
+    const passwordAttesa = teamFound?.password?.trim().toUpperCase() || user;
+    if (pass !== passwordAttesa) {
+      return { ok: false, errore: 'Password errata.' };
     }
 
-    return { ok: false, errore: 'Codice non riconosciuto. Controlla il tuo codice e riprova.' };
+    const u = utenteFound
+      ? buildUtente(utenteFound, giocatori)
+      : { ...teamFound, hasTeam: true };
+    _salvaUtente(u);
+    return { ok: true };
   };
 
   const logout = () => {
@@ -61,7 +69,24 @@ export function AuthProvider({ children }) {
     sessionStorage.removeItem('fanta_utente');
   };
 
-  // Aggiorna utente quando i CSV cambiano (es. admin aggiunge la squadra)
+  // Chiamata dal modal primo accesso.
+  // nuovaPassword = stringa → cambia, null → usa il codice come password
+  const completaPrimoAccesso = async (nuovaPassword) => {
+    const cod = utente?.codice;
+    if (!cod) return;
+
+    const pw = nuovaPassword ? nuovaPassword.trim().toUpperCase() : cod.trim().toUpperCase();
+
+    if (utente.hasTeam) {
+      // Ha già una squadra → aggiorna subito Supabase
+      await supabase.from('giocatori').update({ password: pw }).eq('codice', cod);
+    }
+    // In entrambi i casi aggiorna la sessione.
+    // Se non ha ancora la squadra, la password verrà inclusa nell'INSERT di Iscrizione.
+    _salvaUtente({ ...utente, password: pw });
+  };
+
+  // Aggiorna utente quando i dati cambiano
   React.useEffect(() => {
     if (!utente || utente.isAdmin) return;
     if (giocatori.length === 0 && utenti.length === 0) return;
@@ -69,21 +94,16 @@ export function AuthProvider({ children }) {
     const utenteBase = utenti.find(u => u.codice === utente.codice);
     if (utenteBase) {
       const aggiornato = buildUtente(utenteBase, giocatori);
-      setUtente(aggiornato);
-      sessionStorage.setItem('fanta_utente', JSON.stringify(aggiornato));
+      // preserva la password in sessione se non è ancora su DB
+      _salvaUtente({ ...aggiornato, password: aggiornato.password || utente.password });
     } else {
-      // fallback per codici legacy
       const team = giocatori.find(g => g.codice === utente.codice);
-      if (team) {
-        const aggiornato = { ...utente, ...team, hasTeam: true };
-        setUtente(aggiornato);
-        sessionStorage.setItem('fanta_utente', JSON.stringify(aggiornato));
-      }
+      if (team) _salvaUtente({ ...utente, ...team, hasTeam: true });
     }
   }, [giocatori, utenti]); // eslint-disable-line
 
   return (
-    <AuthContext.Provider value={{ utente, login, logout, loading }}>
+    <AuthContext.Provider value={{ utente, login, logout, loading, primoAccesso, completaPrimoAccesso }}>
       {children}
     </AuthContext.Provider>
   );

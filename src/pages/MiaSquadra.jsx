@@ -12,7 +12,7 @@ const RUOLI = [
   { key: 'amico san carlo', label: 'Amico San Carlo', emoji: '✝️' },
 ];
 
-export default function MiaSquadra() {
+export default function MiaSquadra({ onModifica }) {
   const { utente } = useAuth();
   const { personaggi, classifica, bonusMalus, giorni, getPersonaggioScore } = useData();
   const [giornoSelezionato, setGiornoSelezionato] = useState(null);
@@ -65,6 +65,15 @@ export default function MiaSquadra() {
         <div className="squadra-totale">
           <span className="totale-num">{totale.toFixed(1)}</span>
           <span className="totale-label">punti totali</span>
+          {onModifica && (
+            <button
+              className="btn-secondary btn-sm"
+              onClick={onModifica}
+              style={{ marginTop: 8, fontSize: 12 }}
+            >
+              ✏️ Modifica
+            </button>
+          )}
         </div>
       </div>
 

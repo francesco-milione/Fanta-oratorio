@@ -59,20 +59,21 @@ function SezioneRuolo({ titolo, emoji, personaggi, selezionati, onToggle, max, c
 }
 
 // modalitaPostLogin = true → utente già loggato, conosce id_personaggio, non può mettersi in squadra
-export default function Iscrizione({ onTornaLogin, modalitaPostLogin = false, utenteLoggato = null }) {
+// modalitaModifica  = true → modifica squadra esistente (pre-fill + UPDATE)
+export default function Iscrizione({ onTornaLogin, modalitaPostLogin = false, utenteLoggato = null, modalitaModifica = false, onTornaSquadra = null }) {
   const { personaggi, loading, error, reload } = useData();
   const { logout } = useAuth();
 
-  const [nomeSquadra, setNomeSquadra] = useState('');
+  const [nomeSquadra, setNomeSquadra] = useState(modalitaModifica ? (utenteLoggato?.['nome-squadra'] || '') : '');
   const [proprietario] = useState(modalitaPostLogin ? (utenteLoggato?.nome || '') : '');
   const [codice] = useState(modalitaPostLogin ? (utenteLoggato?.codice || generaCodice()) : generaCodice());
   const [codiceLibero, setCodiceLibero] = useState(!modalitaPostLogin ? generaCodice() : '');
   const [nomeLibero, setNomeLibero] = useState('');
-  const [educatore, setEducatore] = useState(null);
-  const [animatori, setAnimatori] = useState([]);
-  const [preAnimatore, setPreAnimatore] = useState(null);
-  const [amicoSanCarlo, setAmicoSanCarlo] = useState(null);
-  const [squadraOratorio, setSquadraOratorio] = useState(null);
+  const [educatore, setEducatore] = useState(modalitaModifica ? (utenteLoggato?.educatore || null) : null);
+  const [animatori, setAnimatori] = useState(modalitaModifica ? [utenteLoggato?.animatore1, utenteLoggato?.animatore2].filter(Boolean) : []);
+  const [preAnimatore, setPreAnimatore] = useState(modalitaModifica ? (utenteLoggato?.['pre animatore'] || null) : null);
+  const [amicoSanCarlo, setAmicoSanCarlo] = useState(modalitaModifica ? (utenteLoggato?.['amico san carlo'] || null) : null);
+  const [squadraOratorio, setSquadraOratorio] = useState(modalitaModifica ? (utenteLoggato?.['squadra-oratorio'] || null) : null);
   const [cerca, setCerca] = useState('');
 
   const [salvando, setSalvando] = useState(false);
@@ -108,6 +109,8 @@ export default function Iscrizione({ onTornaLogin, modalitaPostLogin = false, ut
 
     const riga = {
       'codice':           codiceFinale.trim().toUpperCase(),
+      // password = quella scelta al primo accesso, o il codice se non cambiata
+      'password':         (utenteLoggato?.password || codiceFinale).trim().toUpperCase(),
       'nome-squadra':     nomeSquadra.trim(),
       'proprietario':     nomeFinale.trim(),
       'educatore':        educatore,
@@ -118,7 +121,15 @@ export default function Iscrizione({ onTornaLogin, modalitaPostLogin = false, ut
       'squadra-oratorio': squadraOratorio,
     };
 
-    const { error: sbError } = await supabase.from('giocatori').insert(riga);
+    let sbError;
+    if (modalitaModifica) {
+      ({ error: sbError } = await supabase
+        .from('giocatori')
+        .update(riga)
+        .eq('codice', codiceFinale.trim().toUpperCase()));
+    } else {
+      ({ error: sbError } = await supabase.from('giocatori').insert(riga));
+    }
 
     if (sbError) {
       if (sbError.code === '23505') {
@@ -132,8 +143,12 @@ export default function Iscrizione({ onTornaLogin, modalitaPostLogin = false, ut
 
     setSalvato(true);
     setSalvando(false);
-    // Ricarica i dati → AuthContext rileva hasTeam=true → App mostra il sito
+    // Ricarica i dati → AuthContext aggiorna l'utente
     await reload();
+    // In modalità modifica torna automaticamente alla pagina squadra
+    if (modalitaModifica) {
+      onTornaSquadra?.();
+    }
   };
 
   const reset = () => {
@@ -157,21 +172,28 @@ export default function Iscrizione({ onTornaLogin, modalitaPostLogin = false, ut
     <div className="iscrizione-page">
       <div className="iscrizione-header">
         <div className="iscrizione-header-top">
-          <div>
-            <span className="logo-icon" style={{ fontSize: 28 }}>⛪</span>
-            <span style={{ fontWeight: 700, fontSize: 20, marginLeft: 8 }}>Fanta<b>Oratorio</b></span>
-            <span style={{ fontSize: 13, color: 'var(--text-muted)', marginLeft: 8 }}>
-              — {modalitaPostLogin ? 'Crea la tua squadra' : 'Iscrizione'}
+          <div className="iscrizione-brand">
+            <span style={{ fontSize: 26 }}>⛪</span>
+            <span className="iscrizione-brand-text">Fanta<b>Oratorio</b></span>
+            <span className="iscrizione-brand-chip">
+              {modalitaModifica ? '✏️ Modifica' : modalitaPostLogin ? '🏆 Crea squadra' : '📝 Iscrizione'}
             </span>
           </div>
-          {modalitaPostLogin ? (
-            <button className="btn-secondary btn-sm" onClick={logout}>🚪 Esci</button>
+          {modalitaModifica ? (
+            <button className="btn-outline-white" onClick={onTornaSquadra}>← Torna</button>
+          ) : modalitaPostLogin ? (
+            <button className="btn-outline-white" onClick={logout}>🚪 Esci</button>
           ) : (
-            <button className="btn-secondary btn-sm" onClick={onTornaLogin}>🔐 Accedi</button>
+            <button className="btn-outline-white" onClick={onTornaLogin}>🔐 Accedi</button>
           )}
         </div>
 
-        {modalitaPostLogin ? (
+        {modalitaModifica ? (
+          <p className="iscrizione-intro">
+            Modifica la formazione di <strong>{utenteLoggato?.['nome-squadra']}</strong>.
+            Le modifiche sovrascrivono la squadra attuale.
+          </p>
+        ) : modalitaPostLogin ? (
           <p className="iscrizione-intro">
             Ciao <strong>{utenteLoggato?.nome}</strong>! Scegli la tua formazione:
             1 educatore · 2 animatori · 1 pre animatore · 1 amico di San Carlo · la squadra oratorio.

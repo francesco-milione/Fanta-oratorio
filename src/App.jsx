@@ -11,10 +11,16 @@ import Regolamento from './pages/Regolamento';
 import Iscrizione from './pages/Iscrizione';
 import Personaggi from './pages/Personaggi';
 import AdminPage from './pages/AdminPage';
+import ModaleCambioCodice from './components/ModaleCambioCodice';
+
+// ─── FLAG: metti false per disabilitare il pulsante "Modifica squadra" ───────
+const MODIFICA_SQUADRA_ABILITATA = true;
+// ─────────────────────────────────────────────────────────────────────────────
 
 function AppContent({ vistaGlobale, setVistaGlobale }) {
-  const { utente } = useAuth();
+  const { utente, primoAccesso } = useAuth();
   const [pagina, setPagina] = useState('squadra');
+  const [modificandoSquadra, setModificandoSquadra] = useState(false);
 
   // Vista iscrizione pubblica (senza login)
   if (vistaGlobale === 'iscrizione') {
@@ -25,13 +31,29 @@ function AppContent({ vistaGlobale, setVistaGlobale }) {
 
   if (utente.isAdmin) return <AdminPage />;
 
+  // Primo accesso: schermata dedicata prima di qualsiasi altra vista
+  if (primoAccesso) return <ModaleCambioCodice />;
+
   // Utente loggato ma senza squadra → mostra il form di creazione
   if (utente.hasTeam === false) {
     return (
       <Iscrizione
         modalitaPostLogin
         utenteLoggato={utente}
-        onTornaLogin={() => {}} // non necessario in questa modalità
+        onTornaLogin={() => {}}
+      />
+    );
+  }
+
+  // Modalità modifica squadra
+  if (modificandoSquadra) {
+    return (
+      <Iscrizione
+        modalitaPostLogin
+        modalitaModifica
+        utenteLoggato={utente}
+        onTornaLogin={() => {}}
+        onTornaSquadra={() => setModificandoSquadra(false)}
       />
     );
   }
@@ -39,7 +61,11 @@ function AppContent({ vistaGlobale, setVistaGlobale }) {
   return (
     <div>
       <NavBar pagina={pagina} setPagina={setPagina} onIscrizione={() => setVistaGlobale('iscrizione')} />
-      {pagina === 'squadra'    && <MiaSquadra />}
+      {pagina === 'squadra'    && (
+        <MiaSquadra
+          onModifica={MODIFICA_SQUADRA_ABILITATA ? () => setModificandoSquadra(true) : null}
+        />
+      )}
       {pagina === 'classifica' && <Classifica />}
       {pagina === 'giornata'   && <Giornata />}
       {pagina === 'regolamento'&& <Regolamento />}

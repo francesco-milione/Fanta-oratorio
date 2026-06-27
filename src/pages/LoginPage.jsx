@@ -3,22 +3,26 @@ import { useAuth } from '../context/AuthContext';
 import { useData } from '../context/DataContext';
 
 export default function LoginPage({ onIscrizione }) {
-  const [codice, setCodice] = useState('');
+  const [username, setUsername] = useState('');
+  const [password, setPassword] = useState('');
   const [errore, setErrore] = useState('');
   const [loading, setLoading] = useState(false);
   const { login } = useAuth();
   const { loading: dataLoading, error: dataError } = useData();
 
   const handleSubmit = () => {
-    if (!codice.trim()) { setErrore('Inserisci il tuo codice.'); return; }
+    if (!username.trim()) { setErrore('Inserisci il tuo username.'); return; }
+    if (!password.trim()) { setErrore('Inserisci la tua password.'); return; }
     setLoading(true);
     setErrore('');
     setTimeout(() => {
-      const res = login(codice);
+      const res = login(username, password);
       if (!res.ok) setErrore(res.errore);
       setLoading(false);
     }, 400);
   };
+
+  const handleKey = (e) => { if (e.key === 'Enter') handleSubmit(); };
 
   return (
     <div className="login-page">
@@ -52,19 +56,34 @@ export default function LoginPage({ onIscrizione }) {
         {!dataLoading && !dataError && (
           <>
             <div className="input-group">
-              <label htmlFor="codice">Il tuo codice segreto</label>
+              <label htmlFor="username">Username</label>
               <input
-                id="codice"
+                id="username"
                 type="text"
-                value={codice}
-                onChange={e => { setCodice(e.target.value.toUpperCase()); setErrore(''); }}
-                onKeyDown={e => e.key === 'Enter' && handleSubmit()}
+                value={username}
+                onChange={e => { setUsername(e.target.value.toUpperCase()); setErrore(''); }}
+                onKeyDown={handleKey}
                 placeholder="es. ALFA2026"
                 maxLength={12}
                 autoFocus
-                autoComplete="off"
+                autoComplete="username"
               />
-              <p className="input-hint">Il codice ti è stato consegnato a voce</p>
+              <p className="input-hint">Il codice che ti è stato consegnato</p>
+            </div>
+
+            <div className="input-group">
+              <label htmlFor="password">Password</label>
+              <input
+                id="password"
+                type="password"
+                value={password}
+                onChange={e => { setPassword(e.target.value.toUpperCase()); setErrore(''); }}
+                onKeyDown={handleKey}
+                placeholder="••••••••"
+                maxLength={20}
+                autoComplete="current-password"
+              />
+              <p className="input-hint">Al primo accesso coincide con il tuo username</p>
             </div>
 
             {errore && <div className="alert alert-error">{errore}</div>}
