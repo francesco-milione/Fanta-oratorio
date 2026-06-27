@@ -10,6 +10,7 @@ import Giornata from './pages/Giornata';
 import Regolamento from './pages/Regolamento';
 import Iscrizione from './pages/Iscrizione';
 import Personaggi from './pages/Personaggi';
+import AdminPage from './pages/AdminPage';
 
 function AppContent({ vistaGlobale, setVistaGlobale }) {
   const { utente } = useAuth();
@@ -20,6 +21,8 @@ function AppContent({ vistaGlobale, setVistaGlobale }) {
   }
 
   if (!utente) return <LoginPage onIscrizione={() => setVistaGlobale('iscrizione')} />;
+
+  if (utente.isAdmin) return <AdminPage />;
 
   return (
     <div>

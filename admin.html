@@ -1,0 +1,743 @@
+<!DOCTYPE html>
+<html lang="it">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Admin – Fanta Oratorio</title>
+<style>
+  * { box-sizing: border-box; margin: 0; padding: 0; }
+  body { font-family: 'Segoe UI', sans-serif; background: #0f172a; color: #e2e8f0; min-height: 100vh; }
+
+  /* LOGIN */
+  #login-screen {
+    display: flex; align-items: center; justify-content: center;
+    min-height: 100vh;
+  }
+  .login-card {
+    background: #1e293b; border: 1px solid #334155; border-radius: 16px;
+    padding: 48px 40px; width: 360px; text-align: center;
+  }
+  .login-card h1 { font-size: 28px; font-weight: 700; color: #f59e0b; margin-bottom: 8px; }
+  .login-card p { color: #94a3b8; margin-bottom: 32px; font-size: 14px; }
+  .login-card input {
+    width: 100%; padding: 12px 16px; border-radius: 8px;
+    border: 2px solid #334155; background: #0f172a; color: #e2e8f0;
+    font-size: 16px; text-align: center; letter-spacing: 4px;
+    margin-bottom: 16px; outline: none;
+  }
+  .login-card input:focus { border-color: #f59e0b; }
+  .login-card button {
+    width: 100%; padding: 12px; border-radius: 8px; border: none;
+    background: #f59e0b; color: #0f172a; font-size: 16px; font-weight: 700;
+    cursor: pointer; transition: background 0.2s;
+  }
+  .login-card button:hover { background: #fbbf24; }
+  .error-msg { color: #ef4444; font-size: 13px; margin-top: 8px; min-height: 20px; }
+
+  /* APP */
+  #app { display: none; }
+  header {
+    background: #1e293b; border-bottom: 1px solid #334155;
+    padding: 16px 24px; display: flex; align-items: center; justify-content: space-between;
+  }
+  header h1 { font-size: 20px; font-weight: 700; color: #f59e0b; }
+  header span { color: #94a3b8; font-size: 13px; }
+  .logout-btn {
+    padding: 6px 16px; border-radius: 6px; border: 1px solid #334155;
+    background: transparent; color: #94a3b8; cursor: pointer; font-size: 13px;
+  }
+  .logout-btn:hover { color: #e2e8f0; border-color: #94a3b8; }
+
+  .container { max-width: 1100px; margin: 0 auto; padding: 24px; }
+
+  /* GIORNATA SELECTOR */
+  .giornata-bar {
+    background: #1e293b; border: 1px solid #334155; border-radius: 12px;
+    padding: 20px 24px; margin-bottom: 24px;
+    display: flex; align-items: center; gap: 16px; flex-wrap: wrap;
+  }
+  .giornata-bar label { color: #94a3b8; font-size: 14px; font-weight: 600; }
+  .giornata-bar select, .giornata-bar input[type=number] {
+    padding: 8px 12px; border-radius: 8px; border: 2px solid #334155;
+    background: #0f172a; color: #e2e8f0; font-size: 15px; outline: none;
+  }
+  .giornata-bar select:focus, .giornata-bar input:focus { border-color: #f59e0b; }
+  .btn-primary {
+    padding: 8px 20px; border-radius: 8px; border: none;
+    background: #f59e0b; color: #0f172a; font-weight: 700; cursor: pointer;
+    font-size: 14px; transition: background 0.2s;
+  }
+  .btn-primary:hover { background: #fbbf24; }
+  .btn-outline {
+    padding: 8px 20px; border-radius: 8px; border: 1px solid #334155;
+    background: transparent; color: #e2e8f0; font-weight: 600; cursor: pointer;
+    font-size: 14px; transition: all 0.2s;
+  }
+  .btn-outline:hover { border-color: #94a3b8; }
+  .btn-danger {
+    padding: 6px 14px; border-radius: 6px; border: none;
+    background: #ef4444; color: white; font-size: 13px; cursor: pointer;
+  }
+  .btn-danger:hover { background: #dc2626; }
+  .btn-green {
+    padding: 8px 20px; border-radius: 8px; border: none;
+    background: #22c55e; color: #0f172a; font-weight: 700; cursor: pointer;
+    font-size: 14px;
+  }
+  .btn-green:hover { background: #16a34a; }
+
+  /* TABS */
+  .tabs { display: flex; gap: 4px; margin-bottom: 20px; }
+  .tab {
+    padding: 10px 20px; border-radius: 8px; cursor: pointer;
+    font-size: 14px; font-weight: 600; color: #94a3b8;
+    border: 1px solid transparent; transition: all 0.2s;
+  }
+  .tab:hover { color: #e2e8f0; }
+  .tab.active { background: #f59e0b; color: #0f172a; border-color: #f59e0b; }
+
+  /* VOTI TABLE */
+  .section-card {
+    background: #1e293b; border: 1px solid #334155; border-radius: 12px;
+    overflow: hidden;
+  }
+  .section-header {
+    padding: 16px 20px; border-bottom: 1px solid #334155;
+    display: flex; align-items: center; justify-content: space-between; flex-wrap: wrap; gap: 10px;
+  }
+  .section-header h2 { font-size: 16px; font-weight: 700; }
+  .role-badge {
+    display: inline-block; padding: 2px 8px; border-radius: 12px; font-size: 11px; font-weight: 600;
+  }
+  .badge-edu { background: #7c3aed22; color: #a78bfa; border: 1px solid #7c3aed44; }
+  .badge-ani { background: #0369a122; color: #38bdf8; border: 1px solid #0369a144; }
+  .badge-bam { background: #05966922; color: #34d399; border: 1px solid #05966944; }
+
+  table { width: 100%; border-collapse: collapse; }
+  thead th {
+    padding: 12px 16px; text-align: left; font-size: 12px;
+    color: #64748b; font-weight: 600; text-transform: uppercase;
+    background: #162032; border-bottom: 1px solid #334155;
+  }
+  tbody tr { border-bottom: 1px solid #1e293b; }
+  tbody tr:hover { background: #162032; }
+  tbody td { padding: 10px 16px; font-size: 14px; }
+  .voto-input {
+    width: 80px; padding: 6px 10px; border-radius: 6px;
+    border: 2px solid #334155; background: #0f172a; color: #e2e8f0;
+    font-size: 14px; text-align: center; outline: none;
+  }
+  .voto-input:focus { border-color: #f59e0b; }
+  .voto-input.filled { border-color: #22c55e44; background: #05966911; }
+
+  /* BONUS FORM */
+  .bonus-form {
+    padding: 20px; border-bottom: 1px solid #334155;
+    display: grid; grid-template-columns: 200px 80px 1fr auto; gap: 12px; align-items: end;
+  }
+  .form-group label { display: block; font-size: 12px; color: #64748b; margin-bottom: 6px; font-weight: 600; }
+  .form-group select, .form-group input {
+    width: 100%; padding: 8px 12px; border-radius: 6px;
+    border: 2px solid #334155; background: #0f172a; color: #e2e8f0;
+    font-size: 14px; outline: none;
+  }
+  .form-group select:focus, .form-group input:focus { border-color: #f59e0b; }
+
+  .bonus-list { padding: 0; }
+  .bonus-item {
+    display: flex; align-items: center; padding: 12px 20px;
+    border-bottom: 1px solid #1a2744; gap: 12px;
+  }
+  .bonus-item:last-child { border-bottom: none; }
+  .bonus-badge {
+    min-width: 48px; text-align: center; padding: 4px 8px;
+    border-radius: 6px; font-weight: 700; font-size: 13px;
+  }
+  .badge-bonus { background: #16a34a22; color: #4ade80; border: 1px solid #16a34a44; }
+  .badge-malus { background: #dc262622; color: #f87171; border: 1px solid #dc262644; }
+  .bonus-nome { font-weight: 600; min-width: 160px; font-size: 14px; }
+  .bonus-desc { color: #94a3b8; font-size: 13px; flex: 1; }
+  .tipo-btn {
+    padding: 6px 16px; border-radius: 6px; border: 2px solid #334155;
+    background: transparent; color: #94a3b8; cursor: pointer; font-size: 13px; font-weight: 600;
+  }
+  .tipo-btn.selected-bonus { border-color: #16a34a; background: #16a34a22; color: #4ade80; }
+  .tipo-btn.selected-malus { border-color: #ef4444; background: #ef444422; color: #f87171; }
+
+  .empty-state { padding: 48px; text-align: center; color: #475569; }
+  .empty-state svg { margin-bottom: 12px; }
+
+  /* EXPORT */
+  .export-bar {
+    background: #1e293b; border: 1px solid #334155; border-radius: 12px;
+    padding: 20px 24px; margin-top: 24px;
+    display: flex; align-items: center; gap: 16px; flex-wrap: wrap;
+  }
+  .export-bar h3 { font-weight: 700; flex: 1; }
+  .export-bar p { color: #94a3b8; font-size: 13px; width: 100%; margin-top: -8px; }
+
+  .no-giornata {
+    text-align: center; padding: 80px 20px; color: #475569;
+  }
+  .no-giornata h2 { font-size: 20px; margin-bottom: 8px; }
+
+  .toast {
+    position: fixed; bottom: 24px; right: 24px; z-index: 1000;
+    background: #22c55e; color: #0f172a; padding: 12px 20px;
+    border-radius: 8px; font-weight: 700; font-size: 14px;
+    transform: translateY(80px); opacity: 0; transition: all 0.3s;
+    pointer-events: none;
+  }
+  .toast.show { transform: translateY(0); opacity: 1; }
+
+  .filter-bar { padding: 12px 20px; border-bottom: 1px solid #334155; display: flex; gap: 8px; }
+  .filter-btn {
+    padding: 4px 14px; border-radius: 20px; border: 1px solid #334155;
+    background: transparent; color: #94a3b8; cursor: pointer; font-size: 13px;
+  }
+  .filter-btn.active { background: #334155; color: #e2e8f0; }
+  .stats-row {
+    display: grid; grid-template-columns: repeat(3, 1fr); gap: 12px; margin-bottom: 20px;
+  }
+  .stat-card {
+    background: #1e293b; border: 1px solid #334155; border-radius: 10px;
+    padding: 16px 20px;
+  }
+  .stat-card .label { font-size: 12px; color: #64748b; font-weight: 600; text-transform: uppercase; }
+  .stat-card .value { font-size: 28px; font-weight: 700; color: #f59e0b; margin-top: 4px; }
+  .stat-card .sub { font-size: 12px; color: #64748b; margin-top: 2px; }
+</style>
+</head>
+<body>
+
+<!-- LOGIN -->
+<div id="login-screen">
+  <div class="login-card">
+    <h1>🏆 Fanta Oratorio</h1>
+    <p>Pannello di Amministrazione</p>
+    <input type="password" id="pwd-input" placeholder="Password" onkeydown="if(event.key==='Enter') doLogin()" />
+    <button onclick="doLogin()">Accedi</button>
+    <div class="error-msg" id="err-msg"></div>
+  </div>
+</div>
+
+<!-- APP -->
+<div id="app">
+  <header>
+    <h1>🏆 Admin – Fanta Oratorio</h1>
+    <div style="display:flex;align-items:center;gap:16px;">
+      <span id="header-info"></span>
+      <button class="logout-btn" onclick="doLogout()">Esci</button>
+    </div>
+  </header>
+
+  <div class="container">
+
+    <!-- GIORNATA SELECTOR -->
+    <div class="giornata-bar">
+      <label>📅 Giornata:</label>
+      <select id="giornata-select" onchange="loadGiornata(this.value)">
+        <option value="">-- Seleziona --</option>
+      </select>
+      <span style="color:#475569">oppure</span>
+      <label>Crea nuova:</label>
+      <input type="number" id="new-giornata" min="1" max="99" placeholder="es. 3" style="width:80px" />
+      <button class="btn-primary" onclick="creaGiornata()">+ Crea</button>
+    </div>
+
+    <div id="main-content">
+      <div class="no-giornata">
+        <h2>Seleziona o crea una giornata</h2>
+        <p style="color:#475569;font-size:14px;margin-top:8px;">Usa il pannello sopra per iniziare</p>
+      </div>
+    </div>
+
+  </div>
+</div>
+
+<div class="toast" id="toast"></div>
+
+<script>
+// ===== DATI PERSONAGGI =====
+const PERSONAGGI = [
+  {id:"EDU001",nome:"Domenico",ruolo:"educatore"},
+  {id:"EDU002",nome:"Lucia",ruolo:"educatore"},
+  {id:"EDU003",nome:"Carla",ruolo:"educatore"},
+  {id:"EDU004",nome:"Lavinia",ruolo:"educatore"},
+  {id:"EDU005",nome:"Vanessa",ruolo:"educatore"},
+  {id:"EDU006",nome:"Anna",ruolo:"educatore"},
+  {id:"EDU007",nome:"Giuseppe Di Sanzo",ruolo:"educatore"},
+  {id:"EDU008",nome:"Miriam",ruolo:"educatore"},
+  {id:"EDU009",nome:"Roberta",ruolo:"educatore"},
+  {id:"EDU010",nome:"Francesco M.",ruolo:"educatore"},
+  {id:"EDU011",nome:"Karen",ruolo:"educatore"},
+  {id:"EDU012",nome:"Elisa",ruolo:"educatore"},
+  {id:"EDU013",nome:"Marica",ruolo:"educatore"},
+  {id:"ANI001",nome:"Adelina",ruolo:"animatore"},
+  {id:"ANI002",nome:"Alessia",ruolo:"animatore"},
+  {id:"ANI003",nome:"Alfonso",ruolo:"animatore"},
+  {id:"ANI004",nome:"Antonio Isoldi",ruolo:"animatore"},
+  {id:"ANI005",nome:"Antonio Longo",ruolo:"animatore"},
+  {id:"ANI006",nome:"Benedetta Mastrolorenzo",ruolo:"animatore"},
+  {id:"ANI007",nome:"Domenico Romano",ruolo:"animatore"},
+  {id:"ANI008",nome:"Federica",ruolo:"animatore"},
+  {id:"ANI009",nome:"Francesco Libonati",ruolo:"animatore"},
+  {id:"ANI010",nome:"Giuseppe Galizia",ruolo:"animatore"},
+  {id:"ANI011",nome:"Mariagiovanna",ruolo:"animatore"},
+  {id:"ANI012",nome:"Mariantonietta",ruolo:"animatore"},
+  {id:"ANI013",nome:"Michele",ruolo:"animatore"},
+  {id:"ANI014",nome:"Miki",ruolo:"animatore"},
+  {id:"ANI015",nome:"Miriana",ruolo:"animatore"},
+  {id:"ANI016",nome:"Sara",ruolo:"animatore"},
+  {id:"ANI017",nome:"Aurora La Valle",ruolo:"animatore"},
+  {id:"ANI018",nome:"Sofia",ruolo:"animatore"},
+  {id:"ANI019",nome:"Domenico Conte",ruolo:"animatore"},
+  {id:"ANI020",nome:"Francesco Franzese",ruolo:"animatore"},
+  {id:"ANI021",nome:"Giovanni",ruolo:"animatore"},
+  {id:"ANI022",nome:"Carmine",ruolo:"animatore"},
+  {id:"ANI023",nome:"Claudio",ruolo:"animatore"},
+  {id:"BAM001",nome:"Di Sanzo Francesca",ruolo:"bambino"},
+  {id:"BAM002",nome:"Forte Pietro",ruolo:"bambino"},
+  {id:"BAM003",nome:"Sabia Sara",ruolo:"bambino"},
+  {id:"BAM004",nome:"Di Giano Jeremias",ruolo:"bambino"},
+  {id:"BAM005",nome:"Di Sanzo Marta",ruolo:"bambino"},
+  {id:"BAM006",nome:"Di Giano Marialucia",ruolo:"bambino"},
+  {id:"BAM007",nome:"Cersosimo Stefano",ruolo:"bambino"},
+  {id:"BAM008",nome:"Franzese Gioele",ruolo:"bambino"},
+  {id:"BAM009",nome:"Tarantino Greta",ruolo:"bambino"},
+  {id:"BAM010",nome:"Caputo Francesco",ruolo:"bambino"},
+  {id:"BAM011",nome:"Di Tomaso Gaia",ruolo:"bambino"},
+  {id:"BAM012",nome:"Propato Mario",ruolo:"bambino"},
+  {id:"BAM013",nome:"Ayles Luca Mihaela",ruolo:"bambino"},
+  {id:"BAM014",nome:"Pataro Clhoe",ruolo:"bambino"},
+  {id:"BAM015",nome:"Poerio Lorenzo",ruolo:"bambino"},
+  {id:"BAM016",nome:"Poerio Emanuele",ruolo:"bambino"},
+  {id:"BAM017",nome:"Gerace Rafael Vidal",ruolo:"bambino"},
+  {id:"BAM018",nome:"Cosentini Giorgio",ruolo:"bambino"},
+  {id:"BAM019",nome:"Forte Benedetta",ruolo:"bambino"},
+  {id:"BAM020",nome:"Mastrolorenzo Domenico",ruolo:"bambino"},
+  {id:"BAM021",nome:"Tedesco Matilde",ruolo:"bambino"},
+  {id:"BAM022",nome:"Tedesco Maria",ruolo:"bambino"},
+  {id:"BAM023",nome:"Di Giano Margot",ruolo:"bambino"},
+  {id:"BAM024",nome:"Di Tomaso Mariachiara",ruolo:"bambino"},
+  {id:"BAM025",nome:"Viggiano Mattia",ruolo:"bambino"},
+  {id:"BAM026",nome:"Debiase Jaylen Nuncio",ruolo:"bambino"},
+  {id:"BAM027",nome:"Salines Emanuele",ruolo:"bambino"},
+  {id:"BAM028",nome:"De Cristofaro Isabella",ruolo:"bambino"},
+  {id:"BAM029",nome:"Sabia Federico",ruolo:"bambino"},
+  {id:"BAM030",nome:"Pataro Lucrezia",ruolo:"bambino"},
+  {id:"BAM031",nome:"Forte Chiara",ruolo:"bambino"},
+  {id:"BAM032",nome:"Paladino Alice",ruolo:"bambino"},
+  {id:"BAM033",nome:"Viceconte Zoe",ruolo:"bambino"},
+  {id:"BAM034",nome:"Di Tomaso Gabriele",ruolo:"bambino"},
+  {id:"BAM035",nome:"Franzese Christian",ruolo:"bambino"},
+  {id:"BAM036",nome:"La Valle Vittoria",ruolo:"bambino"},
+  {id:"BAM037",nome:"Romeo Stefania",ruolo:"bambino"},
+  {id:"BAM038",nome:"Tsuik Matvei",ruolo:"bambino"},
+  {id:"BAM039",nome:"Sassone Benedetta",ruolo:"bambino"},
+  {id:"BAM040",nome:"Cioffi Riccardo",ruolo:"bambino"},
+  {id:"BAM041",nome:"Poerio Alessandro",ruolo:"bambino"},
+  {id:"BAM042",nome:"Raimondo Vincenzo",ruolo:"bambino"},
+  {id:"BAM043",nome:"Chiacchio Egidio",ruolo:"bambino"},
+  {id:"BAM044",nome:"Cosentini Carlotta",ruolo:"bambino"},
+  {id:"BAM045",nome:"Brescia Giovanni",ruolo:"bambino"},
+  {id:"BAM046",nome:"Cozzetto Gaetano",ruolo:"bambino"},
+  {id:"BAM047",nome:"Capuano Luigi Francesco",ruolo:"bambino"},
+  {id:"BAM048",nome:"Gagliardi Giulio",ruolo:"bambino"},
+  {id:"BAM049",nome:"Gallicchio Francesca",ruolo:"bambino"},
+  {id:"BAM050",nome:"Lauria Francesco",ruolo:"bambino"},
+  {id:"BAM051",nome:"Armentano Giuseppe",ruolo:"bambino"},
+  {id:"BAM052",nome:"Di Tomaso Lorenzo",ruolo:"bambino"},
+  {id:"BAM053",nome:"Di Giano Azzurra Pia",ruolo:"bambino"},
+  {id:"BAM054",nome:"Di Sanzo Antonio",ruolo:"bambino"},
+  {id:"BAM055",nome:"Fiore Allegra",ruolo:"bambino"},
+  {id:"BAM056",nome:"Franzese Paola",ruolo:"bambino"},
+  {id:"BAM057",nome:"Conte Alessia",ruolo:"bambino"},
+  {id:"BAM058",nome:"Fratta Giada",ruolo:"bambino"},
+  {id:"BAM059",nome:"Franzese Samuele",ruolo:"bambino"},
+  {id:"BAM060",nome:"Fedele Luigi",ruolo:"bambino"},
+  {id:"BAM061",nome:"Romano Maria",ruolo:"bambino"},
+  {id:"BAM062",nome:"Donadio Alessandro",ruolo:"bambino"},
+  {id:"BAM063",nome:"Forte Vincenzo",ruolo:"bambino"},
+  {id:"BAM064",nome:"Di Sanzo Simone",ruolo:"bambino"},
+  {id:"BAM065",nome:"Gallicchio Nicol",ruolo:"bambino"},
+  {id:"BAM066",nome:"Forte Rebecca",ruolo:"bambino"},
+  {id:"BAM067",nome:"Longo Michelle",ruolo:"bambino"},
+  {id:"BAM068",nome:"Cerbino Oriana",ruolo:"bambino"},
+  {id:"BAM069",nome:"Isoldi Francesco",ruolo:"bambino"},
+  {id:"BAM070",nome:"Caputo Carmine",ruolo:"bambino"},
+  {id:"BAM071",nome:"Di Tomaso Francesca",ruolo:"bambino"},
+  {id:"BAM072",nome:"Bravi Christian Antonio",ruolo:"bambino"},
+  {id:"BAM073",nome:"Fornillo Francesco",ruolo:"bambino"},
+  {id:"BAM074",nome:"De Biase Bryan Vincent",ruolo:"bambino"},
+  {id:"BAM075",nome:"La Pasta Antonio",ruolo:"bambino"},
+  {id:"BAM076",nome:"Raimondo Aurora",ruolo:"bambino"},
+  {id:"BAM077",nome:"Cecilia Ginevra",ruolo:"bambino"},
+  {id:"BAM078",nome:"Forte Mario",ruolo:"bambino"},
+  {id:"BAM079",nome:"Cerbino Giorgia",ruolo:"bambino"},
+  {id:"BAM080",nome:"Tedesco Monica",ruolo:"bambino"},
+  {id:"BAM081",nome:"Mastrolorenzo Vincenzo",ruolo:"bambino"},
+  {id:"BAM082",nome:"Di Tomaso Domenico",ruolo:"bambino"},
+  {id:"BAM083",nome:"Caputo Sofia",ruolo:"bambino"},
+  {id:"BAM084",nome:"Verbicaro Giulia",ruolo:"bambino"},
+  {id:"BAM085",nome:"Propato Martina",ruolo:"bambino"},
+  {id:"BAM086",nome:"Mastroperris Giorgia",ruolo:"bambino"},
+  {id:"BAM087",nome:"Propato Maria",ruolo:"bambino"},
+  {id:"BAM088",nome:"Laurita Saverio",ruolo:"bambino"},
+  {id:"BAM089",nome:"Poerio Luca",ruolo:"bambino"},
+  {id:"BAM090",nome:"Conte Luca",ruolo:"bambino"},
+  {id:"BAM091",nome:"Chiacchio Filippo",ruolo:"bambino"},
+  {id:"BAM092",nome:"Sabia Donato",ruolo:"bambino"},
+  {id:"BAM093",nome:"Galizia Leonardo",ruolo:"bambino"},
+  {id:"BAM094",nome:"Fornillo Samuel",ruolo:"bambino"},
+  {id:"BAM095",nome:"Bonafine Giuseppe",ruolo:"bambino"},
+  {id:"BAM096",nome:"Ponzo Laila",ruolo:"bambino"},
+  {id:"BAM097",nome:"Bonifacio Nicole",ruolo:"bambino"},
+];
+
+// ===== STATE =====
+const PASSWORD = 'ADMIN2026';
+let currentGiornata = null;
+let currentTab = 'voti';
+let filterRuolo = 'tutti';
+let state = {}; // { [giornata]: { voti: {id: valore}, bonusMalus: [{id, punti, desc, tipo}] } }
+
+function loadState() {
+  try { state = JSON.parse(localStorage.getItem('fa_admin_state') || '{}'); } catch(e) { state = {}; }
+}
+function saveState() {
+  localStorage.setItem('fa_admin_state', JSON.stringify(state));
+}
+function getGiornataData(g) {
+  if (!state[g]) state[g] = { voti: {}, bonusMalus: [] };
+  return state[g];
+}
+
+// ===== LOGIN =====
+function doLogin() {
+  const v = document.getElementById('pwd-input').value;
+  if (v === PASSWORD) {
+    document.getElementById('login-screen').style.display = 'none';
+    document.getElementById('app').style.display = 'block';
+    loadState();
+    refreshGiornateSelect();
+  } else {
+    document.getElementById('err-msg').textContent = 'Password errata';
+    document.getElementById('pwd-input').value = '';
+    document.getElementById('pwd-input').focus();
+  }
+}
+function doLogout() {
+  document.getElementById('app').style.display = 'none';
+  document.getElementById('login-screen').style.display = 'flex';
+  document.getElementById('pwd-input').value = '';
+  document.getElementById('err-msg').textContent = '';
+  currentGiornata = null;
+}
+
+// ===== GIORNATE =====
+function getGiornateList() {
+  return Object.keys(state).map(Number).sort((a,b)=>a-b);
+}
+function refreshGiornateSelect() {
+  const sel = document.getElementById('giornata-select');
+  const cur = sel.value;
+  const list = getGiornateList();
+  sel.innerHTML = '<option value="">-- Seleziona --</option>' +
+    list.map(g => `<option value="${g}" ${g==cur?'selected':''}">Giornata ${g}</option>`).join('');
+}
+function creaGiornata() {
+  const n = parseInt(document.getElementById('new-giornata').value);
+  if (!n || n < 1 || n > 99) { showToast('Inserisci un numero valido (1-99)', 'error'); return; }
+  if (state[n]) { showToast(`Giornata ${n} già esistente!`, 'error'); return; }
+  getGiornataData(n);
+  saveState();
+  refreshGiornateSelect();
+  document.getElementById('new-giornata').value = '';
+  document.getElementById('giornata-select').value = n;
+  loadGiornata(n);
+  showToast(`Giornata ${n} creata!`);
+}
+function loadGiornata(g) {
+  if (!g) { currentGiornata = null; renderMain(); return; }
+  currentGiornata = parseInt(g);
+  renderMain();
+}
+
+// ===== RENDER =====
+function renderMain() {
+  const el = document.getElementById('main-content');
+  document.getElementById('header-info').textContent = currentGiornata ? `Giornata ${currentGiornata}` : '';
+  if (!currentGiornata) {
+    el.innerHTML = `<div class="no-giornata"><h2>Seleziona o crea una giornata</h2><p style="color:#475569;font-size:14px;margin-top:8px;">Usa il pannello sopra per iniziare</p></div>`;
+    return;
+  }
+  const data = getGiornataData(currentGiornata);
+  const nVoti = Object.keys(data.voti).length;
+  const nBonus = data.bonusMalus.filter(b=>b.tipo==='bonus').length;
+  const nMalus = data.bonusMalus.filter(b=>b.tipo==='malus').length;
+
+  el.innerHTML = `
+    <div class="stats-row">
+      <div class="stat-card">
+        <div class="label">Voti inseriti</div>
+        <div class="value">${nVoti}</div>
+        <div class="sub">su ${PERSONAGGI.length} personaggi</div>
+      </div>
+      <div class="stat-card">
+        <div class="label">Bonus</div>
+        <div class="value" style="color:#4ade80">${nBonus}</div>
+        <div class="sub">assegnati questa giornata</div>
+      </div>
+      <div class="stat-card">
+        <div class="label">Malus</div>
+        <div class="value" style="color:#f87171">${nMalus}</div>
+        <div class="sub">assegnati questa giornata</div>
+      </div>
+    </div>
+    <div class="tabs">
+      <div class="tab ${currentTab==='voti'?'active':''}" onclick="switchTab('voti')">📊 Voti</div>
+      <div class="tab ${currentTab==='bonus'?'active':''}" onclick="switchTab('bonus')">⭐ Bonus / Malus</div>
+    </div>
+    <div id="tab-content"></div>
+    <div class="export-bar">
+      <div>
+        <h3>📥 Esporta CSV Giornata ${currentGiornata}</h3>
+        <p>Scarica i file CSV pronti da caricare sul sito</p>
+      </div>
+      <button class="btn-green" onclick="exportVotazioni()">⬇ votazioni.csv</button>
+      <button class="btn-outline" onclick="exportBonusMalus()">⬇ bonus_malus.csv</button>
+      <button class="btn-outline" onclick="exportAll()">⬇ Entrambi</button>
+    </div>
+  `;
+  renderTab();
+}
+
+function switchTab(t) {
+  currentTab = t;
+  document.querySelectorAll('.tab').forEach(el => {
+    el.classList.toggle('active', el.textContent.toLowerCase().includes(t==='voti'?'voti':'bonus'));
+  });
+  renderTab();
+}
+
+function renderTab() {
+  const el = document.getElementById('tab-content');
+  if (currentTab === 'voti') renderVoti(el);
+  else renderBonus(el);
+}
+
+// ===== VOTI =====
+function renderVoti(container) {
+  const data = getGiornataData(currentGiornata);
+  const ruoli = ['tutti','educatore','animatore','bambino'];
+  const filtered = filterRuolo === 'tutti' ? PERSONAGGI : PERSONAGGI.filter(p => p.ruolo === filterRuolo);
+
+  container.innerHTML = `
+    <div class="section-card">
+      <div class="section-header">
+        <h2>Voti Base</h2>
+        <div style="display:flex;gap:8px;align-items:center;">
+          <button class="btn-outline" onclick="compilaVotiAuto()" title="Imposta tutti i mancanti a 6.0">Auto-fill 6.0</button>
+          <button class="btn-danger" onclick="svuotaVoti()" title="Cancella tutti i voti">Reset</button>
+        </div>
+      </div>
+      <div class="filter-bar">
+        ${ruoli.map(r => `<button class="filter-btn ${filterRuolo===r?'active':''}" onclick="setFilter('${r}')">${r.charAt(0).toUpperCase()+r.slice(1)}</button>`).join('')}
+        <span style="color:#475569;font-size:12px;margin-left:auto;align-self:center">${filtered.length} personaggi</span>
+      </div>
+      <table>
+        <thead><tr>
+          <th>ID</th>
+          <th>Nome</th>
+          <th>Ruolo</th>
+          <th>Voto base</th>
+        </tr></thead>
+        <tbody>
+          ${filtered.map(p => {
+            const v = data.voti[p.id] || '';
+            const badge = p.ruolo==='educatore' ? 'badge-edu' : p.ruolo==='animatore' ? 'badge-ani' : 'badge-bam';
+            return `<tr>
+              <td style="color:#475569;font-size:12px">${p.id}</td>
+              <td style="font-weight:500">${p.nome}</td>
+              <td><span class="role-badge ${badge}">${p.ruolo}</span></td>
+              <td>
+                <input class="voto-input ${v?'filled':''}" type="number" min="0" max="10" step="0.5"
+                  value="${v}" placeholder="—"
+                  onchange="setVoto('${p.id}', this.value)"
+                  oninput="this.className='voto-input'+(this.value?' filled':'')"
+                />
+              </td>
+            </tr>`;
+          }).join('')}
+        </tbody>
+      </table>
+    </div>
+  `;
+}
+
+function setFilter(r) {
+  filterRuolo = r;
+  renderTab();
+}
+function setVoto(id, val) {
+  const data = getGiornataData(currentGiornata);
+  if (val === '' || val === null) delete data.voti[id];
+  else data.voti[id] = parseFloat(val);
+  saveState();
+  // update stats quietly
+  updateStats();
+}
+function updateStats() {
+  const data = getGiornataData(currentGiornata);
+  const n = Object.keys(data.voti).length;
+  const el = document.querySelector('.stat-card .value');
+  if (el) el.textContent = n;
+}
+function compilaVotiAuto() {
+  const data = getGiornataData(currentGiornata);
+  PERSONAGGI.forEach(p => { if (!data.voti[p.id]) data.voti[p.id] = 6.0; });
+  saveState();
+  renderMain();
+  showToast('Voti mancanti impostati a 6.0');
+}
+function svuotaVoti() {
+  if (!confirm('Cancellare tutti i voti di questa giornata?')) return;
+  getGiornataData(currentGiornata).voti = {};
+  saveState();
+  renderMain();
+  showToast('Voti eliminati');
+}
+
+// ===== BONUS/MALUS =====
+let newBonusTipo = 'bonus';
+function renderBonus(container) {
+  const data = getGiornataData(currentGiornata);
+  const items = data.bonusMalus || [];
+
+  container.innerHTML = `
+    <div class="section-card">
+      <div class="section-header">
+        <h2>Aggiungi Bonus / Malus</h2>
+      </div>
+      <div class="bonus-form">
+        <div class="form-group">
+          <label>Personaggio</label>
+          <select id="bm-persona">
+            <option value="">-- Scegli --</option>
+            ${PERSONAGGI.map(p => `<option value="${p.id}">[${p.id}] ${p.nome}</option>`).join('')}
+          </select>
+        </div>
+        <div class="form-group">
+          <label>Punti</label>
+          <input type="number" id="bm-punti" min="0.5" max="10" step="0.5" placeholder="es. 2" />
+        </div>
+        <div class="form-group">
+          <label>Descrizione</label>
+          <input type="text" id="bm-desc" placeholder="es. Ha vinto la gara di canto" />
+        </div>
+        <div class="form-group">
+          <label>Tipo</label>
+          <div style="display:flex;gap:8px;margin-top:2px">
+            <button class="tipo-btn ${newBonusTipo==='bonus'?'selected-bonus':''}" onclick="setTipo('bonus')">+ Bonus</button>
+            <button class="tipo-btn ${newBonusTipo==='malus'?'selected-malus':''}" onclick="setTipo('malus')">− Malus</button>
+          </div>
+        </div>
+        <div style="display:flex;align-items:flex-end">
+          <button class="btn-primary" onclick="aggiungiBonus()">Aggiungi</button>
+        </div>
+      </div>
+      <div class="bonus-list">
+        ${items.length === 0 ? `<div class="empty-state">Nessun bonus/malus ancora per questa giornata</div>` :
+          items.map((b, i) => {
+            const p = PERSONAGGI.find(x => x.id === b.id);
+            const segno = b.tipo === 'bonus' ? '+' : '-';
+            return `
+            <div class="bonus-item">
+              <span class="bonus-badge ${b.tipo==='bonus'?'badge-bonus':'badge-malus'}">${segno}${b.punti}</span>
+              <span class="bonus-nome">${p ? p.nome : b.id}</span>
+              <span class="bonus-desc">${b.desc}</span>
+              <span class="role-badge ${b.tipo==='bonus'?'badge-bam':'badge-edu'}" style="font-size:11px">${b.tipo}</span>
+              <button class="btn-danger" onclick="rimuoviBonus(${i})">✕</button>
+            </div>`;
+          }).join('')}
+      </div>
+    </div>
+  `;
+}
+
+function setTipo(t) {
+  newBonusTipo = t;
+  renderTab();
+}
+function aggiungiBonus() {
+  const id = document.getElementById('bm-persona').value;
+  const punti = parseFloat(document.getElementById('bm-punti').value);
+  const desc = document.getElementById('bm-desc').value.trim();
+  if (!id) { showToast('Seleziona un personaggio', 'error'); return; }
+  if (!punti || punti <= 0) { showToast('Inserisci i punti (>0)', 'error'); return; }
+  if (!desc) { showToast('Inserisci una descrizione', 'error'); return; }
+  const data = getGiornataData(currentGiornata);
+  data.bonusMalus.push({ id, punti, desc, tipo: newBonusTipo });
+  saveState();
+  renderMain();
+  showToast(`${newBonusTipo === 'bonus' ? 'Bonus' : 'Malus'} aggiunto!`);
+}
+function rimuoviBonus(i) {
+  const data = getGiornataData(currentGiornata);
+  data.bonusMalus.splice(i, 1);
+  saveState();
+  renderMain();
+}
+
+// ===== EXPORT =====
+function csvEscape(v) {
+  const s = String(v);
+  if (s.includes(',') || s.includes('"') || s.includes('\n')) return `"${s.replace(/"/g,'""')}"`;
+  return s;
+}
+function downloadCSV(filename, rows) {
+  const csv = rows.map(r => r.map(csvEscape).join(',')).join('\n');
+  const blob = new Blob([csv], { type: 'text/csv;charset=utf-8;' });
+  const a = document.createElement('a');
+  a.href = URL.createObjectURL(blob);
+  a.download = filename;
+  a.click();
+}
+function exportVotazioni() {
+  const data = getGiornataData(currentGiornata);
+  const rows = [['id_personaggio','giorno','voto_base']];
+  for (const [id, voto] of Object.entries(data.voti)) {
+    rows.push([id, currentGiornata, voto]);
+  }
+  if (rows.length === 1) { showToast('Nessun voto inserito!', 'error'); return; }
+  downloadCSV(`votazioni_g${currentGiornata}.csv`, rows);
+  showToast(`votazioni_g${currentGiornata}.csv scaricato`);
+}
+function exportBonusMalus() {
+  const data = getGiornataData(currentGiornata);
+  const rows = [['id_personaggio','giorno','punti','descrizione','tipo']];
+  for (const b of data.bonusMalus) {
+    const segno = b.tipo === 'bonus' ? '+' : '-';
+    rows.push([b.id, currentGiornata, `${segno}${b.punti}`, b.desc, b.tipo]);
+  }
+  if (rows.length === 1) { showToast('Nessun bonus/malus inserito!', 'error'); return; }
+  downloadCSV(`bonus_malus_g${currentGiornata}.csv`, rows);
+  showToast(`bonus_malus_g${currentGiornata}.csv scaricato`);
+}
+function exportAll() {
+  exportVotazioni();
+  setTimeout(exportBonusMalus, 300);
+}
+
+// ===== TOAST =====
+function showToast(msg, type) {
+  const t = document.getElementById('toast');
+  t.textContent = msg;
+  t.style.background = type === 'error' ? '#ef4444' : '#22c55e';
+  t.classList.add('show');
+  setTimeout(() => t.classList.remove('show'), 2500);
+}
+</script>
+</body>
+</html>

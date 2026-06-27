@@ -14,6 +14,12 @@ export function AuthProvider({ children }) {
   const { giocatori, loading } = useData();
 
   const login = (codice) => {
+    if (codice.trim().toUpperCase() === 'ADMIN2026') {
+      const admin = { codice: 'ADMIN2026', isAdmin: true, nome_squadra: 'Admin' };
+      setUtente(admin);
+      sessionStorage.setItem('fanta_utente', JSON.stringify(admin));
+      return { ok: true };
+    }
     const found = giocatori.find(g => g.codice?.trim().toUpperCase() === codice.trim().toUpperCase());
     if (found) {
       setUtente(found);

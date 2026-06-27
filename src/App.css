@@ -34,6 +34,7 @@ body {
   color: var(--text);
   min-height: 100vh;
   -webkit-font-smoothing: antialiased;
+  overflow-x: hidden;
 }
 
 /* ===== LOGIN PAGE ===== */
@@ -328,11 +329,12 @@ body {
   flex-shrink: 0;
   box-shadow: 0 4px 12px rgba(0,0,0,0.2);
 }
-.squadra-info { flex: 1; min-width: 0; }
+.squadra-info { flex: 1; min-width: 0; overflow: hidden; }
 .squadra-nome {
   font-family: 'Fredoka One', cursive;
   font-size: 1.25rem;
   white-space: nowrap; overflow: hidden; text-overflow: ellipsis;
+  max-width: 100%;
 }
 .squadra-owner { font-size: 0.85rem; opacity: 0.85; margin-top: 2px; }
 .squadra-totale { text-align: right; flex-shrink: 0; }
@@ -503,12 +505,13 @@ body {
   font-size: 1.3rem;
   color: var(--text-2);
 }
-.cl-info { flex: 1; min-width: 0; }
+.cl-info { flex: 1; min-width: 0; overflow: hidden; }
 .cl-squadra {
   display: block;
   font-weight: 800;
   font-size: 1rem;
   white-space: nowrap; overflow: hidden; text-overflow: ellipsis;
+  max-width: 100%;
 }
 .cl-owner { font-size: 0.8rem; color: var(--text-2); }
 .tu-badge {
@@ -558,15 +561,26 @@ body {
   text-transform: capitalize;
 }
 .cl-membro-nome { font-weight: 700; font-size: 0.9rem; }
-.cl-membro-score { display: flex; align-items: center; gap: 8px; }
+.cl-membro-score {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  flex-shrink: 0;
+  min-width: 90px;
+  justify-content: flex-end;
+}
 .cl-membro-pts {
   font-family: 'Fredoka One', cursive;
   font-size: 1.15rem;
   color: var(--viola);
+  min-width: 36px;
+  text-align: right;
 }
 .cl-membro-bm {
-  font-size: 0.75rem;
-  font-weight: 700;
+  font-size: 0.72rem;
+  font-weight: 800;
+  min-width: 44px;
+  text-align: right;
 }
 .cl-membro-bm.pos { color: var(--verde); }
 .cl-membro-bm.neg { color: var(--rosso); }
@@ -711,13 +725,101 @@ body {
 @keyframes spin { to { transform: rotate(360deg); } }
 
 /* ===== MOBILE ===== */
-@media(max-width: 480px) {
-  .navbar-tabs .nav-tab span:last-child { display: none; }
-  .nav-tab { padding: 8px 12px; }
-  .navbar { gap: 8px; }
-  .squadra-hero { padding: 18px; }
-  .page { padding: 16px 12px 80px; }
-  .cl-main { padding: 14px; gap: 10px; }
+@media(max-width: 600px) {
+  /* Navbar top: solo brand + utente */
+  .navbar {
+    gap: 8px;
+    justify-content: space-between;
+    padding: 0 16px;
+  }
+  .navbar-tabs {
+    position: fixed;
+    bottom: 0;
+    left: 0;
+    right: 0;
+    flex: none;
+    background: white;
+    border-top: 2px solid var(--viola-lt);
+    box-shadow: 0 -2px 16px rgba(91,33,182,0.10);
+    display: flex;
+    justify-content: space-around;
+    gap: 0;
+    padding: 6px 4px;
+    padding-bottom: calc(6px + env(safe-area-inset-bottom, 0px));
+    z-index: 200;
+  }
+  .nav-tab {
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    gap: 2px;
+    padding: 5px 6px;
+    border-radius: 12px;
+    flex: 1;
+    min-width: 0;
+  }
+  .nav-tab span:first-child { font-size: 1.15rem; }
+  .nav-tab span:last-child {
+    display: block !important;
+    font-size: 0.58rem;
+    font-weight: 800;
+    letter-spacing: 0.02em;
+    line-height: 1;
+    white-space: nowrap;
+  }
+  .user-label { display: none; }
+
+  /* Page */
+  .page {
+    padding: 16px 12px;
+    padding-bottom: calc(72px + env(safe-area-inset-bottom, 0px));
+  }
+
+  /* Squadra */
+  .squadra-hero { padding: 16px; gap: 12px; }
+  .totale-num { font-size: 1.6rem; }
+
+  /* Classifica */
+  .cl-main { padding: 12px 14px; gap: 10px; }
+  .cl-pts { font-size: 1.2rem; }
+
+  /* Giornata */
+  .giorni-selector { gap: 6px; }
+  .giorno-big-btn { padding: 10px 12px; min-width: 52px; }
+  .giorno-num { font-size: 1.3rem; }
+
+  /* Regolamento — banner */
+  .reg-oratorio-banner {
+    flex-wrap: wrap;
+    gap: 10px;
+  }
+  .reg-oratorio-anno {
+    margin-left: 0;
+    width: 100%;
+    text-align: center;
+  }
+
+  /* Regolamento — stats grid */
+  .reg-stats {
+    grid-template-columns: repeat(3, 1fr);
+    gap: 6px;
+  }
+  .reg-stat { padding: 10px 6px; }
+  .reg-stat-num { font-size: 1rem; }
+  .reg-stat-label { font-size: 0.6rem; }
+
+  /* Regolamento — tab ruoli */
+  .reg-ruoli-tabs { gap: 4px; }
+  .reg-ruolo-tab {
+    padding: 8px 4px;
+    font-size: 0.72rem;
+  }
+  .reg-ruolo-tab-emoji { font-size: 1.3rem; }
+  .reg-ruolo-header { padding: 12px 14px; gap: 10px; }
+
+  /* Regolamento — voci */
+  .reg-voce { padding: 10px 12px; gap: 8px; }
+  .reg-voce-punti { font-size: 1rem; min-width: 28px; }
 }
 
 @media (prefers-reduced-motion: reduce) {

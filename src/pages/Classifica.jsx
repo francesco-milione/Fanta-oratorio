@@ -58,12 +58,13 @@ export default function Classifica() {
                             <span className="cl-membro-nome">{d.nome}</span>
                           </div>
                           <div className="cl-membro-score">
+                            <span
+                              className={`cl-membro-bm ${d.totaleBM >= 0 ? 'pos' : 'neg'}`}
+                              style={d.totaleBM === 0 ? { visibility: 'hidden' } : {}}
+                            >
+                              {d.totaleBM > 0 ? '+' : ''}{d.totaleBM.toFixed(1)}
+                            </span>
                             <span className="cl-membro-pts">{d.totale.toFixed(1)}</span>
-                            {d.totaleBM !== 0 && (
-                              <span className={`cl-membro-bm ${d.totaleBM > 0 ? 'pos' : 'neg'}`}>
-                                {d.totaleBM > 0 ? '+' : ''}{d.totaleBM.toFixed(1)} b/m
-                              </span>
-                            )}
                           </div>
                         </div>
                       );
