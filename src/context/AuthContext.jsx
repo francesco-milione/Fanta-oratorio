@@ -1,6 +1,7 @@
 import React, { createContext, useContext, useState } from 'react';
 import { useData } from './DataContext';
 import { supabase } from '../supabaseClient';
+import { hashPassword, isHash } from '../utils/crypto';
 
 const AuthContext = createContext(null);
 
@@ -31,11 +32,11 @@ export function AuthProvider({ children }) {
     sessionStorage.setItem('fanta_utente', JSON.stringify(u));
   };
 
-  const login = (username, password) => {
+  const login = async (username, password) => {
     const user = username.trim().toUpperCase();
     const pass = password.trim().toUpperCase();
 
-    // Admin
+    // Admin — nessun hashing
     if (user === 'ADMIN2026') {
       if (pass !== 'ADMIN2026') return { ok: false, errore: 'Password errata.' };
       const admin = { codice: 'ADMIN2026', isAdmin: true, nome_squadra: 'Admin' };
@@ -51,10 +52,21 @@ export function AuthProvider({ children }) {
       return { ok: false, errore: 'Username non riconosciuto.' };
     }
 
-    // Controlla password: usa giocatori.password se impostata, altrimenti il codice
-    const passwordAttesa = teamFound?.password?.trim().toUpperCase() || user;
-    if (pass !== passwordAttesa) {
-      return { ok: false, errore: 'Password errata.' };
+    const storedPassword = teamFound?.password?.trim() || null;
+
+    if (!storedPassword) {
+      // Password vuota/null = reset manuale → accetta solo username come password
+      if (pass !== user) return { ok: false, errore: 'Password errata.' };
+      // primoAccesso = true perché password è null in DB
+    } else if (isHash(storedPassword)) {
+      // Password hashata (formato corrente)
+      const hashed = await hashPassword(pass);
+      if (hashed !== storedPassword) return { ok: false, errore: 'Password errata.' };
+    } else {
+      // Password in chiaro (legacy) — confronta direttamente e migra silenziosamente
+      if (pass !== storedPassword.toUpperCase()) return { ok: false, errore: 'Password errata.' };
+      const hashed = await hashPassword(pass);
+      await supabase.from('giocatori').update({ password: hashed }).eq('codice', user);
     }
 
     const u = utenteFound
@@ -75,15 +87,17 @@ export function AuthProvider({ children }) {
     const cod = utente?.codice;
     if (!cod) return;
 
-    const pw = nuovaPassword ? nuovaPassword.trim().toUpperCase() : cod.trim().toUpperCase();
+    const pwPlain = nuovaPassword ? nuovaPassword.trim().toUpperCase() : cod.trim().toUpperCase();
+    const pwHash = await hashPassword(pwPlain);
 
     if (utente.hasTeam) {
-      // Ha già una squadra → aggiorna subito Supabase
-      await supabase.from('giocatori').update({ password: pw }).eq('codice', cod);
+      // Ha già una squadra → aggiorna subito Supabase con l'hash
+      await supabase.from('giocatori').update({ password: pwHash }).eq('codice', cod);
     }
-    // In entrambi i casi aggiorna la sessione.
-    // Se non ha ancora la squadra, la password verrà inclusa nell'INSERT di Iscrizione.
-    _salvaUtente({ ...utente, password: pw });
+    // In sessione teniamo il testo in chiaro: serve per il display in Iscrizione
+    // e verrà hashato al momento del salvataggio della squadra (se non c'è ancora).
+    // L'hash è già su DB (se hasTeam) oppure verrà incluso nell'INSERT di Iscrizione.
+    _salvaUtente({ ...utente, password: pwPlain, passwordHash: pwHash });
   };
 
   // Aggiorna utente quando i dati cambiano

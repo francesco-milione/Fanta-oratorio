@@ -11,16 +11,14 @@ export default function LoginPage({ onIscrizione }) {
   const { login } = useAuth();
   const { loading: dataLoading, error: dataError } = useData();
 
-  const handleSubmit = () => {
+  const handleSubmit = async () => {
     if (!username.trim()) { setErrore('Inserisci il tuo username.'); return; }
     if (!password.trim()) { setErrore('Inserisci la tua password.'); return; }
     setLoading(true);
     setErrore('');
-    setTimeout(() => {
-      const res = login(username, password);
-      if (!res.ok) setErrore(res.errore);
-      setLoading(false);
-    }, 400);
+    const res = await login(username, password);
+    if (!res.ok) setErrore(res.errore);
+    setLoading(false);
   };
 
   const handleKey = (e) => { if (e.key === 'Enter') handleSubmit(); };

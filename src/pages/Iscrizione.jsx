@@ -3,6 +3,7 @@ import { useData } from '../context/DataContext';
 import { useAuth } from '../context/AuthContext';
 import { SQUADRE_ORATORIO, SQUADRE_LABEL } from '../context/DataContext';
 import { supabase } from '../supabaseClient';
+import { hashPassword, isHash } from '../utils/crypto';
 
 function generaCodice() {
   const lettere = 'ABCDEFGHJKLMNPQRSTUVWXYZ';
@@ -107,10 +108,19 @@ export default function Iscrizione({ onTornaLogin, modalitaPostLogin = false, ut
     setSalvando(true);
     setErroreSubmit(null);
 
+    // passwordHash = già calcolato da completaPrimoAccesso (modalitaPostLogin).
+    // Fallback: isHash() per password legacy già hashate in sessione, oppure hasha il codice (iscrizione libera).
+    const pwSessioneHash = utenteLoggato?.passwordHash;
+    const pwSessionePlain = utenteLoggato?.password;
+    const pwToSave = pwSessioneHash
+      ? pwSessioneHash
+      : pwSessionePlain && isHash(pwSessionePlain)
+        ? pwSessionePlain
+        : await hashPassword((pwSessionePlain || codiceFinale).trim().toUpperCase());
+
     const riga = {
       'codice':           codiceFinale.trim().toUpperCase(),
-      // password = quella scelta al primo accesso, o il codice se non cambiata
-      'password':         (utenteLoggato?.password || codiceFinale).trim().toUpperCase(),
+      'password':         pwToSave,
       'nome-squadra':     nomeSquadra.trim(),
       'proprietario':     nomeFinale.trim(),
       'educatore':        educatore,
