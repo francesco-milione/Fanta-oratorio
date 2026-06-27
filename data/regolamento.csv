@@ -1,7 +1,6 @@
 tipo,punti,descrizione,categoria,emoji
 bonus,+3,Ha convinto un compagno a non fare una birichinata,Bambino,😇
 bonus,+2,Ha corso più veloce dell'animatore nella gara,Bambino,🏃
-bonus,+1,Ha mangiato tutto senza fare storie (anche la verdura!),Bambino,🥦
 bonus,+2,Ha cantato a squarciagola durante l'animazione,Bambino,🎤
 bonus,+3,Ha aiutato un amico che era caduto senza che nessuno lo chiedesse,Bambino,🦸
 bonus,+1,Ha tenuto il segreto della sorpresa per tutta la giornata,Bambino,🤫
@@ -51,3 +50,23 @@ malus,-1,Ha risposto al telefono durante un momento importante,Educatore,📞
 malus,-2,Ha detto "ai miei tempi all'oratorio…" per più di due minuti,Educatore,📻
 malus,-1,Ha perso la lista presenze (quella che aveva appena stampato),Educatore,📋
 malus,-2,Ha fatto una regola sul momento e poi se l'è dimenticata,Educatore,🤷
+bonus,+3,Ha trascinato tutto il gruppo con l'entusiasmo quando nessuno aveva voglia,Tutti,🔥
+bonus,+2,Era lo spaiato ma ha trovato comunque il modo di partecipare — respect,Tutti,🃏
+bonus,+2,Ha fatto una battuta che ha fatto ridere pure il più brontolone del gruppo,Tutti,😆
+bonus,+3,Ha difeso qualcuno che stava per fare brutta figura davanti a tutti,Tutti,🛡️
+bonus,+2,Ha trovato qualcosa che qualcuno aveva perso senza dire nulla e senza aspettarsi ringraziamenti,Tutti,🔍
+bonus,+1,Ha detto "grazie" spontaneamente senza che nessuno lo ricordasse,Tutti,🌟
+bonus,+2,Ha fatto una cosa di cui nessuno si aspettava fosse capace — sorpresa dell'anno,Tutti,🎩
+bonus,+1,Ha aiutato qualcuno in silenzio senza farlo sembrare un favore,Tutti,🥷
+bonus,+2,Ha ammesso di aver sbagliato davanti a tutti senza fare drammi,Tutti,🫡
+bonus,+3,Ha improvvisato qualcosa di bellissimo che nessuno aveva previsto,Tutti,✨
+malus,-1,Lo Spaiato — si è lamentato per 10 minuti invece di trovare una soluzione,Tutti,🫧
+malus,-3,🏆 Cretino del Giorno — ha fatto una cosa così senza senso che nemmeno lui sa spiegare perché,Tutti,🤡
+malus,-1,Ha sbagliato il nome di qualcuno e ha continuato a sbagliarlo per tutta la giornata,Tutti,🙃
+malus,-2,Ha usato il telefono pensando che nessuno lo vedesse (sbagliato),Tutti,📱
+malus,-1,Ha sbadigliato durante un momento importante in modo così vistoso da diventare il momento,Tutti,😪
+malus,-2,Ha cambiato idea su tutto almeno tre volte nello stesso pomeriggio,Tutti,🔄
+malus,-2,Ha rotto qualcosa e ha detto "non ero io" (c'erano testimoni),Tutti,💥
+malus,-1,Ha fatto tardi e ha dato la colpa al traffico — eravate a piedi,Tutti,🚶
+malus,-3,Ha fatto una gaffe imbarazzante davanti a tutti e l'ha peggiorata cercando di rimediare,Tutti,🙈
+malus,-2,Ha discusso per 5 minuti una cosa irrilevante con una serietà imbarazzante,Tutti,📜
