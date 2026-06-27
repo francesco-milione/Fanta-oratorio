@@ -75,9 +75,9 @@ export default function LoginPage({ onIscrizione }) {
 
             <div className="login-divider"><span>oppure</span></div>
 
-            <button className="btn-secondary" onClick={onIscrizione}>
+            {/* <button className="btn-secondary" onClick={onIscrizione}>
               📝 Crea la tua squadra
-            </button>
+            </button> */}
           </>
         )}
       </div>
