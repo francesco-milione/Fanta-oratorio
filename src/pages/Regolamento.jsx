@@ -85,21 +85,6 @@ export default function Regolamento() {
         <p style={{marginTop: 10}}>Il punteggio della squadra è la <strong>somma dei punteggi di tutti e 6 i personaggi</strong>.</p>
       </div>
 
-      {/* Statistiche globali */}
-      <div className="reg-stats">
-        {RUOLI.map(r => {
-          const b = voci.filter(v => v.categoria === r.id && v.tipo === 'bonus').length;
-          const m = voci.filter(v => v.categoria === r.id && v.tipo === 'malus').length;
-          return (
-            <div key={r.id} className="reg-stat" style={{borderColor: r.colore, cursor:'pointer'}} onClick={() => setRuoloAttivo(r.id)}>
-              <span style={{fontSize: 22}}>{r.emoji}</span>
-              <span className="reg-stat-num" style={{color: r.colore}}>{r.label}</span>
-              <span className="reg-stat-label">+{b} bonus · {m} malus</span>
-            </div>
-          );
-        })}
-      </div>
-
       {/* Tab ruoli */}
       <div className="reg-ruoli-tabs">
         {RUOLI.map(r => (
