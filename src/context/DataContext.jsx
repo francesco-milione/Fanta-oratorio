@@ -1,4 +1,5 @@
 import React, { createContext, useContext, useState, useEffect, useCallback } from 'react';
+import { supabase } from '../supabaseClient';
 
 const DataContext = createContext(null);
 
@@ -54,16 +55,19 @@ export function DataProvider({ children }) {
   const loadData = useCallback(async () => {
     try {
       setData(d => ({ ...d, loading: true, error: null }));
-      const [p, g, u, v, b] = await Promise.all([
-        fetchCSV('/data/personaggi.csv'),
-        fetchCSV('/data/giocatori.csv'),
-        fetchCSV('/data/utenti.csv'),
-        fetchCSV('/data/votazioni.csv'),
-        fetchCSV('/data/bonus_malus.csv'),
+      const [[p, u, v, b], giocatoriRes] = await Promise.all([
+        Promise.all([
+          fetchCSV('/data/personaggi.csv'),
+          fetchCSV('/data/utenti.csv'),
+          fetchCSV('/data/votazioni.csv'),
+          fetchCSV('/data/bonus_malus.csv'),
+        ]),
+        supabase.from('giocatori').select('*').order('created_at', { ascending: true }),
       ]);
+      if (giocatoriRes.error) throw new Error(`Supabase: ${giocatoriRes.error.message}`);
       setData({
         personaggi: parseCSV(p),
-        giocatori: parseCSV(g),
+        giocatori: giocatoriRes.data || [],
         utenti: parseCSV(u),
         votazioni: parseCSV(v),
         bonusMalus: parseCSV(b),

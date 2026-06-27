@@ -2,6 +2,7 @@ import React, { useState, useMemo } from 'react';
 import { useData } from '../context/DataContext';
 import { useAuth } from '../context/AuthContext';
 import { SQUADRE_ORATORIO, SQUADRE_LABEL } from '../context/DataContext';
+import { supabase } from '../supabaseClient';
 
 function generaCodice() {
   const lettere = 'ABCDEFGHJKLMNPQRSTUVWXYZ';
@@ -31,7 +32,7 @@ function RigaPersonaggio({ p, selezionato, onClick, disabled }) {
 
 function SezioneRuolo({ titolo, emoji, personaggi, selezionati, onToggle, max, cerca, idEscluso }) {
   const filtrati = personaggi.filter(p => {
-    if (p.id === idEscluso) return false; // auto-esclusione: non puoi mettere te stesso
+    if (p.id === idEscluso) return false;
     return (
       p.nome.toLowerCase().includes(cerca.toLowerCase()) ||
       p.id.toLowerCase().includes(cerca.toLowerCase())
@@ -59,7 +60,7 @@ function SezioneRuolo({ titolo, emoji, personaggi, selezionati, onToggle, max, c
 
 // modalitaPostLogin = true → utente già loggato, conosce id_personaggio, non può mettersi in squadra
 export default function Iscrizione({ onTornaLogin, modalitaPostLogin = false, utenteLoggato = null }) {
-  const { personaggi, loading, error } = useData();
+  const { personaggi, loading, error, reload } = useData();
   const { logout } = useAuth();
 
   const [nomeSquadra, setNomeSquadra] = useState('');
@@ -73,12 +74,14 @@ export default function Iscrizione({ onTornaLogin, modalitaPostLogin = false, ut
   const [amicoSanCarlo, setAmicoSanCarlo] = useState(null);
   const [squadraOratorio, setSquadraOratorio] = useState(null);
   const [cerca, setCerca] = useState('');
-  const [copiato, setCopiato] = useState(false);
+
+  const [salvando, setSalvando] = useState(false);
+  const [salvato, setSalvato] = useState(false);
+  const [erroreSubmit, setErroreSubmit] = useState(null);
 
   // ID del personaggio dell'utente loggato (da escludere dalla selezione)
   const idSelf = modalitaPostLogin ? utenteLoggato?.id_personaggio : null;
 
-  // In modalità libera (vecchia iscrizione pubblica), usa i campi liberi
   const nomeFinale = modalitaPostLogin ? proprietario : nomeLibero;
   const codiceFinale = modalitaPostLogin ? codice : codiceLibero;
 
@@ -98,23 +101,47 @@ export default function Iscrizione({ onTornaLogin, modalitaPostLogin = false, ut
     educatore && animatori.length === 2 && preAnimatore && amicoSanCarlo &&
     squadraOratorio && nomeSquadra.trim() && nomeFinale.trim();
 
-  // Ordine colonne CSV: codice, nome-squadra, proprietario, educatore, animatore1, animatore2, pre animatore, amico san carlo, squadra-oratorio
-  const rigaCSV = completo
-    ? `${codiceFinale},${nomeSquadra.trim()},${nomeFinale.trim()},${educatore},${animatori[0]},${animatori[1]},${preAnimatore},${amicoSanCarlo},${squadraOratorio}`
-    : '';
+  const salvaSquadra = async () => {
+    if (!completo || salvando) return;
+    setSalvando(true);
+    setErroreSubmit(null);
 
-  const copiaRiga = () => {
-    navigator.clipboard.writeText(rigaCSV).then(() => {
-      setCopiato(true);
-      setTimeout(() => setCopiato(false), 2000);
-    });
+    const riga = {
+      'codice':           codiceFinale.trim().toUpperCase(),
+      'nome-squadra':     nomeSquadra.trim(),
+      'proprietario':     nomeFinale.trim(),
+      'educatore':        educatore,
+      'animatore1':       animatori[0],
+      'animatore2':       animatori[1],
+      'pre animatore':    preAnimatore,
+      'amico san carlo':  amicoSanCarlo,
+      'squadra-oratorio': squadraOratorio,
+    };
+
+    const { error: sbError } = await supabase.from('giocatori').insert(riga);
+
+    if (sbError) {
+      if (sbError.code === '23505') {
+        setErroreSubmit('Questo codice è già stato usato per creare una squadra.');
+      } else {
+        setErroreSubmit(`Errore: ${sbError.message}`);
+      }
+      setSalvando(false);
+      return;
+    }
+
+    setSalvato(true);
+    setSalvando(false);
+    // Ricarica i dati → AuthContext rileva hasTeam=true → App mostra il sito
+    await reload();
   };
 
   const reset = () => {
     setNomeSquadra('');
     if (!modalitaPostLogin) { setNomeLibero(''); setCodiceLibero(generaCodice()); }
     setEducatore(null); setAnimatori([]); setPreAnimatore(null);
-    setAmicoSanCarlo(null); setSquadraOratorio(null); setCerca(''); setCopiato(false);
+    setAmicoSanCarlo(null); setSquadraOratorio(null); setCerca('');
+    setSalvato(false); setErroreSubmit(null);
   };
 
   if (loading) return (
@@ -171,6 +198,7 @@ export default function Iscrizione({ onTornaLogin, modalitaPostLogin = false, ut
                 type="text" value={nomeSquadra}
                 onChange={e => setNomeSquadra(e.target.value)}
                 placeholder="es. Gli Invincibili" maxLength={30}
+                disabled={salvato}
               />
             </div>
             {!modalitaPostLogin && (
@@ -180,6 +208,7 @@ export default function Iscrizione({ onTornaLogin, modalitaPostLogin = false, ut
                   type="text" value={nomeLibero}
                   onChange={e => setNomeLibero(e.target.value)}
                   placeholder="es. Alberto R." maxLength={30}
+                  disabled={salvato}
                 />
               </div>
             )}
@@ -208,8 +237,9 @@ export default function Iscrizione({ onTornaLogin, modalitaPostLogin = false, ut
                     type="text" value={codiceLibero}
                     onChange={e => setCodiceLibero(e.target.value.toUpperCase().replace(/[^A-Z0-9]/g, '').slice(0, 8))}
                     maxLength={8} style={{ fontFamily: 'monospace', fontWeight: 700, letterSpacing: 2 }}
+                    disabled={salvato}
                   />
-                  <button className="btn-secondary btn-sm" onClick={() => setCodiceLibero(generaCodice())} title="Rigenera">🔄</button>
+                  <button className="btn-secondary btn-sm" onClick={() => setCodiceLibero(generaCodice())} title="Rigenera" disabled={salvato}>🔄</button>
                 </div>
                 <p className="input-hint">Lo userai per accedere all'app. Tienilo da parte!</p>
               </div>
@@ -228,13 +258,14 @@ export default function Iscrizione({ onTornaLogin, modalitaPostLogin = false, ut
               const info = SQUADRE_LABEL[sq];
               const sel = squadraOratorio === sq;
               return (
-                <button key={sq} onClick={() => setSquadraOratorio(sq)} style={{
+                <button key={sq} onClick={() => !salvato && setSquadraOratorio(sq)} style={{
                   padding: '12px 20px', borderRadius: 12,
                   border: `2px solid ${sel ? info.colore : 'var(--border)'}`,
                   background: sel ? info.colore + '22' : 'transparent',
                   color: sel ? info.colore : 'var(--text-muted)',
-                  fontWeight: 700, fontSize: 16, cursor: 'pointer',
+                  fontWeight: 700, fontSize: 16, cursor: salvato ? 'default' : 'pointer',
                   display: 'flex', alignItems: 'center', gap: 8, transition: 'all 0.2s',
+                  opacity: salvato ? 0.7 : 1,
                 }}>
                   <span style={{ fontSize: 22 }}>{info.emoji}</span>
                   {info.label}
@@ -246,31 +277,35 @@ export default function Iscrizione({ onTornaLogin, modalitaPostLogin = false, ut
         </div>
 
         {/* Ricerca */}
-        <div className="iscrizione-cerca-box">
-          <input
-            type="text" value={cerca}
-            onChange={e => setCerca(e.target.value)}
-            placeholder="🔍 Cerca per nome o codice…"
-            className="iscrizione-cerca"
-          />
-          {cerca && <button className="btn-ghost btn-sm" onClick={() => setCerca('')}>✕</button>}
-        </div>
+        {!salvato && (
+          <div className="iscrizione-cerca-box">
+            <input
+              type="text" value={cerca}
+              onChange={e => setCerca(e.target.value)}
+              placeholder="🔍 Cerca per nome o codice…"
+              className="iscrizione-cerca"
+            />
+            {cerca && <button className="btn-ghost btn-sm" onClick={() => setCerca('')}>✕</button>}
+          </div>
+        )}
 
         {/* Selezione — ordine: educatori → animatori → pre-animatori → amici */}
-        <div className="iscrizione-ruoli">
-          <SezioneRuolo titolo="Educatori" emoji="👨‍🏫"
-            personaggi={educatori} selezionati={educatore ? [educatore] : []}
-            onToggle={toggleEducatore} max={1} cerca={cerca} idEscluso={idSelf} />
-          <SezioneRuolo titolo="Animatori" emoji="🎭"
-            personaggi={animatoriList} selezionati={animatori}
-            onToggle={toggleAnimatore} max={2} cerca={cerca} idEscluso={idSelf} />
-          <SezioneRuolo titolo="Pre-animatori" emoji="🌱"
-            personaggi={preAnimatoriList} selezionati={preAnimatore ? [preAnimatore] : []}
-            onToggle={togglePreAnimatore} max={1} cerca={cerca} idEscluso={idSelf} />
-          <SezioneRuolo titolo="Amici di San Carlo" emoji="✝️"
-            personaggi={amiciList} selezionati={amicoSanCarlo ? [amicoSanCarlo] : []}
-            onToggle={toggleAmico} max={1} cerca={cerca} idEscluso={idSelf} />
-        </div>
+        {!salvato && (
+          <div className="iscrizione-ruoli">
+            <SezioneRuolo titolo="Educatori" emoji="👨‍🏫"
+              personaggi={educatori} selezionati={educatore ? [educatore] : []}
+              onToggle={toggleEducatore} max={1} cerca={cerca} idEscluso={idSelf} />
+            <SezioneRuolo titolo="Animatori" emoji="🎭"
+              personaggi={animatoriList} selezionati={animatori}
+              onToggle={toggleAnimatore} max={2} cerca={cerca} idEscluso={idSelf} />
+            <SezioneRuolo titolo="Pre-animatori" emoji="🌱"
+              personaggi={preAnimatoriList} selezionati={preAnimatore ? [preAnimatore] : []}
+              onToggle={togglePreAnimatore} max={1} cerca={cerca} idEscluso={idSelf} />
+            <SezioneRuolo titolo="Amici di San Carlo" emoji="✝️"
+              personaggi={amiciList} selezionati={amicoSanCarlo ? [amicoSanCarlo] : []}
+              onToggle={toggleAmico} max={1} cerca={cerca} idEscluso={idSelf} />
+          </div>
+        )}
 
         {/* Riepilogo */}
         <div className="iscrizione-risultato">
@@ -295,25 +330,41 @@ export default function Iscrizione({ onTornaLogin, modalitaPostLogin = false, ut
             </span>
           </div>
 
-          {completo ? (
-            <div className="iscrizione-csv-box">
-              <p className="iscrizione-csv-label">Riga da copiare e inviare all'admin:</p>
-              <div className="iscrizione-csv-riga">
-                <code>{rigaCSV}</code>
-                <button className={`btn-primary btn-sm ${copiato ? 'btn-success' : ''}`} onClick={copiaRiga}>
-                  {copiato ? '✓ Copiato!' : '📋 Copia'}
-                </button>
-              </div>
-              <p className="iscrizione-csv-hint">
-                Il tuo codice di accesso è <strong>{codiceFinale}</strong>. Usalo sempre per entrare!
+          {salvato ? (
+            <div className="iscrizione-csv-box" style={{ textAlign: 'center', padding: 24 }}>
+              <div style={{ fontSize: 48, marginBottom: 8 }}>🎉</div>
+              <h3 style={{ color: 'var(--primary)', marginBottom: 4 }}>Squadra salvata!</h3>
+              <p style={{ color: 'var(--text-muted)', marginBottom: 16 }}>
+                La tua squadra <strong>{nomeSquadra}</strong> è stata registrata.
+                {!modalitaPostLogin && (
+                  <> Il tuo codice è <strong style={{ fontFamily: 'monospace', letterSpacing: 2 }}>{codiceFinale}</strong> — tienilo da parte!</>
+                )}
               </p>
-              <button className="btn-ghost btn-sm" onClick={reset} style={{ marginTop: 8 }}>🔄 Ricomincia</button>
+              {!modalitaPostLogin && (
+                <button className="btn-ghost btn-sm" onClick={reset}>🔄 Registra un'altra squadra</button>
+              )}
+            </div>
+          ) : erroreSubmit ? (
+            <div className="iscrizione-csv-box">
+              <div className="alert alert-error" style={{ marginBottom: 12 }}>⚠️ {erroreSubmit}</div>
+              <button className="btn-ghost btn-sm" onClick={() => setErroreSubmit(null)}>Riprova</button>
+            </div>
+          ) : completo ? (
+            <div className="iscrizione-csv-box">
+              <button
+                className="btn-primary"
+                onClick={salvaSquadra}
+                disabled={salvando}
+                style={{ width: '100%', padding: '14px', fontSize: 16, marginTop: 8 }}
+              >
+                {salvando ? '⏳ Salvataggio…' : '✅ Conferma e salva squadra'}
+              </button>
             </div>
           ) : (
             <p className="iscrizione-avviso">
               {!nomeSquadra.trim()
                 ? '⬆️ Inserisci il nome della tua squadra per continuare.'
-                : 'Seleziona tutti i personaggi e la squadra per generare la riga.'}
+                : 'Seleziona tutti i personaggi e la squadra per confermare.'}
             </p>
           )}
         </div>
