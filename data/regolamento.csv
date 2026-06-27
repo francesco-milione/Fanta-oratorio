@@ -1,19 +1,53 @@
 tipo,punti,descrizione,categoria,emoji
-bonus,+3,Ha aiutato spontaneamente un compagno in difficoltà,Comportamento,🤝
-bonus,+2,Ha partecipato con entusiasmo alle attività,Partecipazione,🙌
-bonus,+2,Ha vinto un gioco o una gara della giornata,Giochi,🏆
-bonus,+3,Ha dimostrato spirito di squadra esemplare,Comportamento,💪
-bonus,+1,È stato puntuale a tutte le attività,Puntualità,⏰
-bonus,+2,Ha condiviso qualcosa con altri senza essere chiesto,Generosità,🎁
-bonus,+3,Ha fatto qualcosa di inaspettato e bello per il gruppo,Sorpresa,✨
-bonus,+1,Ha partecipato alla preghiera con raccoglimento,Spiritualità,🙏
-bonus,+2,Ha proposto un'idea creativa per le attività,Creatività,💡
-bonus,+3,Ha saputo gestire un conflitto in modo maturo,Comportamento,🕊️
-malus,-1,È arrivato in ritardo a un'attività,Puntualità,⏰
-malus,-2,Ha litigato con un compagno,Comportamento,😠
-malus,-1,Ha usato il cellulare quando non era il momento,Regole,📵
-malus,-2,Ha disobbedito a un educatore o animatore,Regole,🚫
-malus,-3,Ha escluso intenzionalmente qualcuno dal gruppo,Comportamento,💔
-malus,-1,Non ha partecipato a un'attività senza valida ragione,Partecipazione,😴
-malus,-2,Ha rovinato o danneggiato qualcosa di comune,Rispetto,💥
-malus,-1,Ha detto una bugia che ha creato problemi,Comportamento,🤥
+bonus,+3,Ha convinto un compagno a non fare una birichinata,Bambino,😇
+bonus,+2,Ha corso più veloce dell'animatore nella gara,Bambino,🏃
+bonus,+1,Ha mangiato tutto senza fare storie (anche la verdura!),Bambino,🥦
+bonus,+2,Ha cantato a squarciagola durante l'animazione,Bambino,🎤
+bonus,+3,Ha aiutato un amico che era caduto senza che nessuno lo chiedesse,Bambino,🦸
+bonus,+1,Ha tenuto il segreto della sorpresa per tutta la giornata,Bambino,🤫
+bonus,+2,Ha fatto ridere tutto il gruppo con una battuta buona,Bambino,😂
+bonus,+3,Ha fatto pace con un compagno dopo un litigio,Bambino,🤝
+bonus,+1,Ha aiutato a riordinare senza protestare,Bambino,🧹
+bonus,+2,Ha partecipato alla preghiera con raccoglimento vero,Bambino,🙏
+malus,-2,Si è fatto male (caduta epica degna di un film),Bambino,🩹
+malus,-1,È arrivato in ritardo trascinato dai genitori,Bambino,⏰
+malus,-2,Ha pianto per qualcosa di misterioso (ancora non si sa cosa),Bambino,😭
+malus,-3,Ha fatto volare un oggetto in modo poco consigliabile,Bambino,🪑
+malus,-1,Trovato con il cellulare nascosto nelle tasche,Bambino,📱
+malus,-2,Ha fatto il broncio per tutta l'attività senza motivo,Bambino,😤
+malus,-1,Ha detto "mi annoio" durante un'attività organizzata apposta per lui,Bambino,😴
+malus,-2,Ha litigato con qualcuno per un motivo incomprensibile,Bambino,🥊
+malus,-3,Ha fatto del male a un compagno di proposito,Bambino,😠
+malus,-1,Ha esagerato col cibo al pranzo (sì proprio lui),Bambino,🍕
+bonus,+3,Ha inventato un gioco che ha funzionato davvero (miracolo!),Animatore,🎯
+bonus,+2,Ha fatto ridere tutto il gruppo con una battuta,Animatore,😎
+bonus,+2,Sapeva tutte le parole delle canzoni dell'animazione,Animatore,🎶
+bonus,+3,Ha portato i bambini a destinazione senza perderne nemmeno uno,Animatore,🐑
+bonus,+2,Ha risolto una lite tra bambini senza perdere la testa,Animatore,🧩
+bonus,+1,Ha improvvisato un'attività in 5 minuti ed è venuta benissimo,Animatore,⚡
+bonus,+3,Ha fatto entusiasmare anche il bambino più brontolone,Animatore,🏆
+bonus,+2,Ha dimostrato doti atletiche durante i giochi,Animatore,💪
+malus,-2,Ha perso un bambino per più di 5 minuti (poi l'ha ritrovato tranquillo),Animatore,😵
+malus,-1,Beccato a dormire durante un'attività (con gli occhi aperti però),Animatore,☕
+malus,-2,Ha urlato così forte da spaventare i bambini,Animatore,📢
+malus,-3,Trovato a giocare al telefono invece di animare,Animatore,🎮
+malus,-1,Ha sbagliato le regole del gioco che aveva inventato lui stesso,Animatore,🤦
+malus,-2,Ha promesso una cosa ai bambini che poi non ha potuto mantenere,Animatore,🤥
+malus,-1,Ha perso il filo dell'attività ed è finita nel caos totale,Animatore,🌪️
+malus,-2,Ha litigato con un bambino (e il bambino aveva ragione),Animatore,👦
+bonus,+3,Ha tenuto un discorso motivazionale che ha emozionato tutti,Educatore,📣
+bonus,+2,Ha sopravvissuto all'intera giornata senza caffè (leggendario),Educatore,☕
+bonus,+3,Ha mantenuto la calma in una situazione di caos totale,Educatore,🧘
+bonus,+2,Ha convinto tutti a partecipare senza usare la voce da sergente,Educatore,🏅
+bonus,+1,Ha ricordato il nome di tutti i bambini senza sbagliare,Educatore,🧠
+bonus,+3,Ha risolto un problema complicato con una soluzione geniale,Educatore,💡
+bonus,+2,Ha aiutato un animatore in difficoltà senza farlo sentire giudicato,Educatore,🤝
+bonus,+1,Ha fatto una cosa spontanea e bella per il gruppo,Educatore,✨
+malus,-2,Ha perso il fischietto (di nuovo… ancora… sempre),Educatore,😩
+malus,-1,Ha fatto svolgere un'attività sotto la pioggia per errore di valutazione,Educatore,🌧️
+malus,-2,Ha dimenticato il codice del magazzino (terza volta questa settimana),Educatore,🔑
+malus,-3,Trovato a dormire durante la preghiera (con la bocca aperta),Educatore,😴
+malus,-1,Ha risposto al telefono durante un momento importante,Educatore,📞
+malus,-2,Ha detto "ai miei tempi all'oratorio…" per più di due minuti,Educatore,📻
+malus,-1,Ha perso la lista presenze (quella che aveva appena stampato),Educatore,📋
+malus,-2,Ha fatto una regola sul momento e poi se l'è dimenticata,Educatore,🤷
