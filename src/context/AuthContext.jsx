@@ -8,7 +8,7 @@ const AuthContext = createContext(null);
 export function AuthProvider({ children }) {
   const [utente, setUtente] = useState(() => {
     try {
-      const saved = sessionStorage.getItem('fanta_utente');
+      const saved = localStorage.getItem('fanta_utente');
       return saved ? JSON.parse(saved) : null;
     } catch { return null; }
   });
@@ -29,7 +29,7 @@ export function AuthProvider({ children }) {
 
   const _salvaUtente = (u) => {
     setUtente(u);
-    sessionStorage.setItem('fanta_utente', JSON.stringify(u));
+    localStorage.setItem('fanta_utente', JSON.stringify(u));
   };
 
   const login = async (username, password) => {
@@ -78,7 +78,7 @@ export function AuthProvider({ children }) {
 
   const logout = () => {
     setUtente(null);
-    sessionStorage.removeItem('fanta_utente');
+    localStorage.removeItem('fanta_utente');
   };
 
   // Chiamata dal modal primo accesso.
