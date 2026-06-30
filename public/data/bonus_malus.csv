@@ -1,2 +1,8 @@
 id_personaggio,giorno,punti,descrizione,tipo
-
+EDU001,1,+3,Ha tenuto un discorso motivazionale che ha emozionato tutti,bonus
+EDU001,1,+3,Bagnare i bambini in modo creativo,bonus
+EDU001,1,-1,Chiede di farsi aggiungere punti,malus
+ANI011,1,+3,100 Metri Dietro ai Bambini,bonus
+ANI015,1,+3,100 Metri Dietro ai Bambini,bonus
+ANI009,1,+3,Aggiustatutto,bonus
+EDU007,1,+2,Ha intrattenuto i bambini più piccoli,bonus
