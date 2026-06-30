@@ -244,6 +244,14 @@ function GiornataTab({ personaggi, showToast }) {
   const [custPunti, setCustPunti]     = useState('');
   const [custDesc, setCustDesc]       = useState('');
 
+  // ── Assegna in blocco (multi-personaggio) ──
+  const [bulkShow, setBulkShow]       = useState(false);
+  const [bulkTipo, setBulkTipo]       = useState('bonus');
+  const [bulkPunti, setBulkPunti]     = useState('');
+  const [bulkDesc, setBulkDesc]       = useState('');
+  const [bulkIds, setBulkIds]         = useState([]);
+  const [bulkSearch, setBulkSearch]   = useState('');
+
   async function aggiungiCustom() {
     const punti = parseFloat(custPunti);
     if (!personaggioId || !punti || punti <= 0 || !custDesc.trim()) return;
@@ -268,16 +276,51 @@ function GiornataTab({ personaggi, showToast }) {
     setEntries(prev => prev.filter(e => e.id !== id));
   }
 
+  // ── Assegna in blocco ──
+  async function assegnaMultiplo() {
+    const punti = parseFloat(bulkPunti);
+    if (!bulkIds.length || !punti || punti <= 0 || !bulkDesc.trim()) {
+      showToast('Compila tutti i campi e seleziona almeno un personaggio', 'err'); return;
+    }
+    const puntiFinali = bulkTipo === 'malus' ? -Math.abs(punti) : Math.abs(punti);
+    const rows = bulkIds.map(id => ({
+      giorno: parseInt(giornata),
+      id_personaggio: id,
+      punti: puntiFinali,
+      descrizione: bulkDesc.trim(),
+      tipo: bulkTipo,
+    }));
+    const { error } = await supabase.from('bonus_malus_live').insert(rows);
+    if (error) { showToast('Errore salvataggio', 'err'); return; }
+    showToast(`${bulkTipo === 'bonus' ? 'Bonus' : 'Malus'} assegnato a ${bulkIds.length} personaggi!`);
+    setBulkIds([]); setBulkPunti(''); setBulkDesc(''); setBulkShow(false);
+    fetchEntries(giornata);
+  }
+
+  function toggleBulkId(id) {
+    setBulkIds(prev => prev.includes(id) ? prev.filter(x => x !== id) : [...prev, id]);
+  }
+
   // ── Download CSV giornata ──
-  function downloadGiornata() {
-    if (!entries.length) { showToast('Nessun dato da scaricare', 'err'); return; }
+  function buildGiornataRows() {
     const rows = [['id_personaggio', 'giorno', 'punti', 'descrizione', 'tipo']];
     entries.forEach(e => {
       const segno = e.tipo === 'bonus' ? '+' : '';
       rows.push([e.id_personaggio, e.giorno, `${segno}${e.punti}`, e.descrizione, e.tipo]);
     });
-    downloadCSV(`bonus_malus_g${giornata}.csv`, rows);
+    return rows;
+  }
+
+  function downloadGiornata() {
+    if (!entries.length) { showToast('Nessun dato da scaricare', 'err'); return; }
+    downloadCSV(`bonus_malus_g${giornata}.csv`, buildGiornataRows());
     showToast(`bonus_malus_g${giornata}.csv scaricato`);
+  }
+
+  function copyGiornata() {
+    if (!entries.length) { showToast('Nessun dato da copiare', 'err'); return; }
+    const csv = buildGiornataRows().map(r => r.map(csvEscape).join(',')).join('\n');
+    navigator.clipboard.writeText(csv).then(() => showToast('Copiato negli appunti!'));
   }
 
   // ── Elenco giornate esistenti (da entries salvate) ──
@@ -440,15 +483,116 @@ function GiornataTab({ personaggi, showToast }) {
             </div>
           </div>
 
+          {/* Assegna in blocco */}
+          <div style={S.sectionCard}>
+            <div style={S.sectionHeader}>
+              <span style={{ fontWeight: 700, fontSize: 15 }}>👥 Assegna a più personaggi</span>
+              <button style={{ ...S.btnOutline, fontSize: 13, padding: '5px 12px' }}
+                onClick={() => { setBulkShow(v => !v); setBulkIds([]); setBulkSearch(''); }}>
+                {bulkShow ? '✕ Chiudi' : '+ Apri'}
+              </button>
+            </div>
+            {bulkShow && (
+              <div style={{ padding: 16, display: 'flex', flexDirection: 'column', gap: 12 }}>
+                {/* Tipo + Punti + Descrizione */}
+                <div style={{ display: 'flex', gap: 8, flexWrap: 'wrap', alignItems: 'center' }}>
+                  <div style={{ display: 'flex', gap: 4 }}>
+                    {['bonus', 'malus'].map(t => (
+                      <button key={t} onClick={() => setBulkTipo(t)} style={{
+                        ...S.filterBtn,
+                        ...(bulkTipo === t
+                          ? t === 'bonus'
+                            ? { borderColor: '#22c55e', background: '#22c55e22', color: '#4ade80' }
+                            : { borderColor: '#ef4444', background: '#ef444422', color: '#f87171' }
+                          : {})
+                      }}>
+                        {t === 'bonus' ? '+ Bonus' : '− Malus'}
+                      </button>
+                    ))}
+                  </div>
+                  <input type="number" min="0.5" max="20" step="0.5" placeholder="Punti"
+                    value={bulkPunti} onChange={e => setBulkPunti(e.target.value)}
+                    style={{ ...S.select, width: 90 }} />
+                  <input type="text" placeholder="Descrizione"
+                    value={bulkDesc} onChange={e => setBulkDesc(e.target.value)}
+                    style={{ ...S.select, flex: 1, minWidth: 180 }} />
+                </div>
+                {/* Multi-select personaggi */}
+                <div>
+                  <div style={{ ...S.label, marginBottom: 6 }}>
+                    Personaggi
+                    {bulkIds.length > 0 && (
+                      <span style={{ marginLeft: 8, color: '#f59e0b', fontWeight: 700 }}>
+                        {bulkIds.length} selezionati
+                      </span>
+                    )}
+                  </div>
+                  <input type="text" placeholder="🔍 Cerca nome o ID..."
+                    value={bulkSearch} onChange={e => setBulkSearch(e.target.value)}
+                    style={{ ...S.select, width: '100%', marginBottom: 6 }} />
+                  <div style={{ display: 'flex', gap: 6, marginBottom: 6 }}>
+                    <button style={{ ...S.filterBtn, fontSize: 12, padding: '3px 10px' }}
+                      onClick={() => setBulkIds(
+                        personaggi
+                          .filter(p => {
+                            const q = bulkSearch.toLowerCase();
+                            return !q || p.nome.toLowerCase().includes(q) || p.id.toLowerCase().includes(q);
+                          })
+                          .map(p => p.id)
+                      )}>
+                      Seleziona tutti visibili
+                    </button>
+                    <button style={{ ...S.filterBtn, fontSize: 12, padding: '3px 10px' }}
+                      onClick={() => setBulkIds([])}>
+                      Deseleziona tutti
+                    </button>
+                  </div>
+                  <div style={{
+                    border: '1px solid #334155', borderRadius: 8,
+                    maxHeight: 220, overflowY: 'auto', background: '#0f172a',
+                  }}>
+                    {personaggi
+                      .filter(p => {
+                        const q = bulkSearch.toLowerCase();
+                        return !q || p.nome.toLowerCase().includes(q) || p.id.toLowerCase().includes(q);
+                      })
+                      .map(p => (
+                        <label key={p.id} style={{
+                          display: 'flex', alignItems: 'center', gap: 10,
+                          padding: '7px 12px', cursor: 'pointer', fontSize: 13,
+                          borderBottom: '1px solid #1e293b',
+                          background: bulkIds.includes(p.id) ? '#1e3a2a' : 'transparent',
+                        }}>
+                          <input type="checkbox"
+                            checked={bulkIds.includes(p.id)}
+                            onChange={() => toggleBulkId(p.id)}
+                            style={{ accentColor: '#f59e0b' }} />
+                          <span style={{ flex: 1 }}>{p.nome}</span>
+                          <span style={{ color: '#475569', fontSize: 11 }}>{p.id}</span>
+                        </label>
+                      ))
+                    }
+                  </div>
+                </div>
+                <div>
+                  <button style={S.btnPrimary} onClick={assegnaMultiplo}>
+                    Assegna a {bulkIds.length || '...'} personaggi
+                  </button>
+                </div>
+              </div>
+            )}
+          </div>
+
           {/* Lista inseriti */}
           <div style={S.sectionCard}>
             <div style={S.sectionHeader}>
               <span style={{ fontWeight: 700, fontSize: 15 }}>
                 Inseriti – Giornata {giornata} ({entries.length})
               </span>
-              <button style={S.btnGreen} onClick={downloadGiornata}>
-                ⬇ Scarica CSV giornata
-              </button>
+              <div style={{ display: 'flex', gap: 8 }}>
+                <button style={S.btnGreen} onClick={downloadGiornata}>⬇ Scarica CSV</button>
+                <button style={{ ...S.btnOutline, fontSize: 13 }} onClick={copyGiornata}>📋 Copia</button>
+              </div>
             </div>
             {loading ? (
               <div style={{ padding: 40, textAlign: 'center', color: '#475569' }}>Caricamento...</div>
@@ -805,12 +949,22 @@ function VotiTab({ showToast }) {
     showToast('Voti eliminati');
   }
 
-  function exportVotazioni() {
-    if (!giornata || !Object.keys(voti).length) { showToast('Nessun voto da esportare', 'err'); return; }
+  function buildVotazioniRows() {
     const rows = [['id_squadra', 'giorno', 'voto_base']];
     Object.entries(voti).forEach(([id, v]) => rows.push([id, giornata, v]));
-    downloadCSV(`votazioni_g${giornata}.csv`, rows);
+    return rows;
+  }
+
+  function exportVotazioni() {
+    if (!giornata || !Object.keys(voti).length) { showToast('Nessun voto da esportare', 'err'); return; }
+    downloadCSV(`votazioni_g${giornata}.csv`, buildVotazioniRows());
     showToast(`votazioni_g${giornata}.csv scaricato`);
+  }
+
+  function copyVotazioni() {
+    if (!giornata || !Object.keys(voti).length) { showToast('Nessun voto da copiare', 'err'); return; }
+    const csv = buildVotazioniRows().map(r => r.map(csvEscape).join(',')).join('\n');
+    navigator.clipboard.writeText(csv).then(() => showToast('Voti copiati negli appunti!'));
   }
 
   return (
@@ -881,6 +1035,7 @@ function VotiTab({ showToast }) {
           <div style={{ ...S.card, display: 'flex', alignItems: 'center', gap: 12 }}>
             <div style={{ flex: 1, fontWeight: 700 }}>📥 Esporta voti – Giornata {giornata}</div>
             <button style={S.btnGreen} onClick={exportVotazioni}>⬇ Scarica votazioni.csv</button>
+            <button style={{ ...S.btnOutline, fontSize: 13 }} onClick={copyVotazioni}>📋 Copia</button>
           </div>
         </>
       )}

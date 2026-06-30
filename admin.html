@@ -133,7 +133,7 @@
   /* BONUS FORM */
   .bonus-form {
     padding: 20px; border-bottom: 1px solid #334155;
-    display: grid; grid-template-columns: 200px 80px 1fr auto; gap: 12px; align-items: end;
+    display: grid; grid-template-columns: 260px 80px 1fr auto; gap: 12px; align-items: end;
   }
   .form-group label { display: block; font-size: 12px; color: #64748b; margin-bottom: 6px; font-weight: 600; }
   .form-group select, .form-group input {
@@ -142,6 +142,68 @@
     font-size: 14px; outline: none;
   }
   .form-group select:focus, .form-group input:focus { border-color: #f59e0b; }
+
+  /* MULTI-SELECT PERSONAGGI */
+  .multi-select-wrapper {
+    position: relative;
+  }
+  .multi-select-trigger {
+    width: 100%; padding: 8px 12px; border-radius: 6px;
+    border: 2px solid #334155; background: #0f172a; color: #e2e8f0;
+    font-size: 14px; cursor: pointer; text-align: left;
+    display: flex; align-items: center; justify-content: space-between;
+    user-select: none;
+  }
+  .multi-select-trigger:hover, .multi-select-trigger.open { border-color: #f59e0b; }
+  .multi-select-trigger .badge-count {
+    background: #f59e0b; color: #0f172a; border-radius: 10px;
+    padding: 1px 7px; font-size: 12px; font-weight: 700;
+  }
+  .multi-select-dropdown {
+    display: none; position: absolute; top: calc(100% + 4px); left: 0; right: 0;
+    background: #1e293b; border: 1px solid #334155; border-radius: 8px;
+    z-index: 100; max-height: 280px; overflow: hidden;
+    box-shadow: 0 8px 24px #00000080;
+    flex-direction: column;
+  }
+  .multi-select-dropdown.open { display: flex; }
+  .multi-select-search {
+    padding: 8px 10px; border-bottom: 1px solid #334155;
+  }
+  .multi-select-search input {
+    width: 100%; padding: 6px 10px; border-radius: 6px;
+    border: 1px solid #334155; background: #0f172a; color: #e2e8f0;
+    font-size: 13px; outline: none;
+  }
+  .multi-select-search input:focus { border-color: #f59e0b; }
+  .multi-select-actions {
+    padding: 4px 10px; border-bottom: 1px solid #334155;
+    display: flex; gap: 8px;
+  }
+  .ms-action-btn {
+    font-size: 11px; color: #94a3b8; background: none; border: none;
+    cursor: pointer; padding: 2px 4px;
+  }
+  .ms-action-btn:hover { color: #f59e0b; }
+  .multi-select-list {
+    overflow-y: auto; flex: 1;
+  }
+  .ms-item {
+    display: flex; align-items: center; gap: 8px;
+    padding: 7px 12px; cursor: pointer; font-size: 13px;
+  }
+  .ms-item:hover { background: #162032; }
+  .ms-item input[type=checkbox] { accent-color: #f59e0b; width: 14px; height: 14px; }
+  .ms-item .ms-role { font-size: 10px; color: #475569; margin-left: auto; }
+
+  /* COPY BUTTONS */
+  .btn-copy {
+    padding: 8px 14px; border-radius: 8px; border: 1px solid #334155;
+    background: transparent; color: #94a3b8; font-size: 13px; cursor: pointer;
+    transition: all 0.2s;
+  }
+  .btn-copy:hover { border-color: #94a3b8; color: #e2e8f0; }
+  .export-group { display: flex; gap: 6px; align-items: center; }
 
   .bonus-list { padding: 0; }
   .bonus-item {
@@ -503,10 +565,16 @@ function renderMain() {
     <div class="export-bar">
       <div>
         <h3>📥 Esporta CSV Giornata ${currentGiornata}</h3>
-        <p>Scarica i file CSV pronti da caricare sul sito</p>
+        <p>Scarica i file CSV o copiaci il contenuto direttamente</p>
       </div>
-      <button class="btn-green" onclick="exportVotazioni()">⬇ votazioni.csv</button>
-      <button class="btn-outline" onclick="exportBonusMalus()">⬇ bonus_malus.csv</button>
+      <div class="export-group">
+        <button class="btn-green" onclick="exportVotazioni()">⬇ votazioni.csv</button>
+        <button class="btn-copy" onclick="copyVotazioni()" title="Copia negli appunti">📋 Copia</button>
+      </div>
+      <div class="export-group">
+        <button class="btn-outline" onclick="exportBonusMalus()">⬇ bonus_malus.csv</button>
+        <button class="btn-copy" onclick="copyBonusMalus()" title="Copia negli appunti">📋 Copia</button>
+      </div>
       <button class="btn-outline" onclick="exportAll()">⬇ Entrambi</button>
     </div>
   `;
@@ -622,11 +690,33 @@ function renderBonus(container) {
       </div>
       <div class="bonus-form">
         <div class="form-group">
-          <label>Personaggio</label>
-          <select id="bm-persona">
-            <option value="">-- Scegli --</option>
-            ${PERSONAGGI.map(p => `<option value="${p.id}">[${p.id}] ${p.nome}</option>`).join('')}
-          </select>
+          <label>Personaggi <span id="bm-count-label" style="color:#f59e0b"></span></label>
+          <div class="multi-select-wrapper" id="ms-wrapper">
+            <button class="multi-select-trigger" id="ms-trigger" onclick="toggleMultiSelect(event)">
+              <span id="ms-trigger-text">-- Scegli uno o più --</span>
+              <span id="ms-badge" style="display:none" class="badge-count">0</span>
+            </button>
+            <div class="multi-select-dropdown" id="ms-dropdown">
+              <div class="multi-select-search">
+                <input type="text" placeholder="🔍 Cerca..." id="ms-search" oninput="filterMsItems()" onclick="event.stopPropagation()" />
+              </div>
+              <div class="multi-select-actions">
+                <button class="ms-action-btn" onclick="selectAllVisible()">Seleziona tutti</button>
+                <span style="color:#334155">|</span>
+                <button class="ms-action-btn" onclick="deselectAll()">Deseleziona tutti</button>
+              </div>
+              <div class="multi-select-list" id="ms-list">
+                ${PERSONAGGI.map(p => {
+                  const badge = p.ruolo==='educatore' ? 'edu' : p.ruolo==='animatore' ? 'ani' : 'bam';
+                  return `<label class="ms-item" data-nome="${p.nome.toLowerCase()}" data-id="${p.id}">
+                    <input type="checkbox" value="${p.id}" onchange="updateMsTrigger()" />
+                    <span>${p.nome}</span>
+                    <span class="ms-role">${p.id}</span>
+                  </label>`;
+                }).join('')}
+              </div>
+            </div>
+          </div>
         </div>
         <div class="form-group">
           <label>Punti</label>
@@ -670,18 +760,74 @@ function setTipo(t) {
   newBonusTipo = t;
   renderTab();
 }
+
+// Multi-select helpers
+function toggleMultiSelect(e) {
+  e.stopPropagation();
+  const dd = document.getElementById('ms-dropdown');
+  const trigger = document.getElementById('ms-trigger');
+  const isOpen = dd.classList.contains('open');
+  dd.classList.toggle('open');
+  trigger.classList.toggle('open', !isOpen);
+  if (!isOpen) document.getElementById('ms-search').focus();
+}
+function filterMsItems() {
+  const q = document.getElementById('ms-search').value.toLowerCase();
+  document.querySelectorAll('#ms-list .ms-item').forEach(el => {
+    el.style.display = el.dataset.nome.includes(q) || el.dataset.id.toLowerCase().includes(q) ? '' : 'none';
+  });
+}
+function updateMsTrigger() {
+  const checked = [...document.querySelectorAll('#ms-list input[type=checkbox]:checked')];
+  const badge = document.getElementById('ms-badge');
+  const text = document.getElementById('ms-trigger-text');
+  if (checked.length === 0) {
+    text.textContent = '-- Scegli uno o più --';
+    badge.style.display = 'none';
+  } else if (checked.length === 1) {
+    const p = PERSONAGGI.find(x => x.id === checked[0].value);
+    text.textContent = p ? p.nome : checked[0].value;
+    badge.style.display = 'none';
+  } else {
+    text.textContent = `${checked.length} selezionati`;
+    badge.textContent = checked.length;
+    badge.style.display = '';
+  }
+}
+function selectAllVisible() {
+  document.querySelectorAll('#ms-list .ms-item').forEach(el => {
+    if (el.style.display !== 'none') el.querySelector('input').checked = true;
+  });
+  updateMsTrigger();
+}
+function deselectAll() {
+  document.querySelectorAll('#ms-list input[type=checkbox]').forEach(cb => cb.checked = false);
+  updateMsTrigger();
+}
+// Close dropdown when clicking outside
+document.addEventListener('click', function(e) {
+  const wrapper = document.getElementById('ms-wrapper');
+  if (wrapper && !wrapper.contains(e.target)) {
+    document.getElementById('ms-dropdown')?.classList.remove('open');
+    document.getElementById('ms-trigger')?.classList.remove('open');
+  }
+});
+
 function aggiungiBonus() {
-  const id = document.getElementById('bm-persona').value;
+  const selectedIds = [...document.querySelectorAll('#ms-list input[type=checkbox]:checked')].map(cb => cb.value);
   const punti = parseFloat(document.getElementById('bm-punti').value);
   const desc = document.getElementById('bm-desc').value.trim();
-  if (!id) { showToast('Seleziona un personaggio', 'error'); return; }
+  if (selectedIds.length === 0) { showToast('Seleziona almeno un personaggio', 'error'); return; }
   if (!punti || punti <= 0) { showToast('Inserisci i punti (>0)', 'error'); return; }
   if (!desc) { showToast('Inserisci una descrizione', 'error'); return; }
   const data = getGiornataData(currentGiornata);
-  data.bonusMalus.push({ id, punti, desc, tipo: newBonusTipo });
+  selectedIds.forEach(id => {
+    data.bonusMalus.push({ id, punti, desc, tipo: newBonusTipo });
+  });
   saveState();
   renderMain();
-  showToast(`${newBonusTipo === 'bonus' ? 'Bonus' : 'Malus'} aggiunto!`);
+  const label = newBonusTipo === 'bonus' ? 'Bonus' : 'Malus';
+  showToast(selectedIds.length === 1 ? `${label} aggiunto!` : `${label} aggiunto a ${selectedIds.length} personaggi!`);
 }
 function rimuoviBonus(i) {
   const data = getGiornataData(currentGiornata);
@@ -705,22 +851,13 @@ function downloadCSV(filename, rows) {
   a.click();
 }
 function exportVotazioni() {
-  const data = getGiornataData(currentGiornata);
-  const rows = [['id_personaggio','giorno','voto_base']];
-  for (const [id, voto] of Object.entries(data.voti)) {
-    rows.push([id, currentGiornata, voto]);
-  }
+  const { rows } = buildVotazioniCSV();
   if (rows.length === 1) { showToast('Nessun voto inserito!', 'error'); return; }
   downloadCSV(`votazioni_g${currentGiornata}.csv`, rows);
   showToast(`votazioni_g${currentGiornata}.csv scaricato`);
 }
 function exportBonusMalus() {
-  const data = getGiornataData(currentGiornata);
-  const rows = [['id_personaggio','giorno','punti','descrizione','tipo']];
-  for (const b of data.bonusMalus) {
-    const segno = b.tipo === 'bonus' ? '+' : '-';
-    rows.push([b.id, currentGiornata, `${segno}${b.punti}`, b.desc, b.tipo]);
-  }
+  const { rows } = buildBonusMalusCSV();
   if (rows.length === 1) { showToast('Nessun bonus/malus inserito!', 'error'); return; }
   downloadCSV(`bonus_malus_g${currentGiornata}.csv`, rows);
   showToast(`bonus_malus_g${currentGiornata}.csv scaricato`);
@@ -728,6 +865,34 @@ function exportBonusMalus() {
 function exportAll() {
   exportVotazioni();
   setTimeout(exportBonusMalus, 300);
+}
+
+function buildVotazioniCSV() {
+  const data = getGiornataData(currentGiornata);
+  const rows = [['id_personaggio','giorno','voto_base']];
+  for (const [id, voto] of Object.entries(data.voti)) {
+    rows.push([id, currentGiornata, voto]);
+  }
+  return { rows, csv: rows.map(r => r.map(csvEscape).join(',')).join('\n') };
+}
+function buildBonusMalusCSV() {
+  const data = getGiornataData(currentGiornata);
+  const rows = [['id_personaggio','giorno','punti','descrizione','tipo']];
+  for (const b of data.bonusMalus) {
+    const segno = b.tipo === 'bonus' ? '+' : '-';
+    rows.push([b.id, currentGiornata, `${segno}${b.punti}`, b.desc, b.tipo]);
+  }
+  return { rows, csv: rows.map(r => r.map(csvEscape).join(',')).join('\n') };
+}
+function copyVotazioni() {
+  const { rows, csv } = buildVotazioniCSV();
+  if (rows.length === 1) { showToast('Nessun voto inserito!', 'error'); return; }
+  navigator.clipboard.writeText(csv).then(() => showToast('Votazioni copiate negli appunti!'));
+}
+function copyBonusMalus() {
+  const { rows, csv } = buildBonusMalusCSV();
+  if (rows.length === 1) { showToast('Nessun bonus/malus inserito!', 'error'); return; }
+  navigator.clipboard.writeText(csv).then(() => showToast('Bonus/malus copiati negli appunti!'));
 }
 
 // ===== TOAST =====
