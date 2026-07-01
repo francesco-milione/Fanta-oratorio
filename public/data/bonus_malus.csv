@@ -19,3 +19,7 @@ ANI009,1,+3,Lavorare dopo l'orario di oratorio,bonus
 EDU007,1,+3,Lavorare dopo l'orario di oratorio,bonus
 ANI010,1,+2,Non farsi bagnare nei giochi d'acqua,bonus
 EDU001,1,+2,Idea geniale,bonus
+ANI004,2,-2,Parolaccia,malus
+EDU009,2,+2,Prova del gioco,bonus
+PRE001,2,+2,Prova del gioco,bonus
+ANI009,2,+2,Prova del gioco,bonus
