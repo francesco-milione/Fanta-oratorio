@@ -47,3 +47,13 @@ ANI008,2,+2,Animazione,bonus
 PRE002,2,+2,Animazione,bonus
 AMC006,2,+2,Giocare con i più piccoli,bonus
 AMC007,2,+2,Giocare con i più piccoli,bonus
+ANI014,2,+2,Intrattiene i bimbi con i disegni,bonus
+ANI010,2,+3,Concerto,bonus
+ANI013,2,+3,Concerto,bonus
+ANI004,2,+3,Concerto,bonus
+EDU004,2,+3,Concerto,bonus
+ANI001,2,+3,Concerto,bonus
+ANI005,2,+3,Concerto,bonus
+ANI008,2,+3,Concerto,bonus
+ANI004,2,-2,Parolaccia,malus
+ANI011,2,+2,Intrattiene i più piccoli,bonus
