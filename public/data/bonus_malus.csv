@@ -23,3 +23,8 @@ ANI004,2,-2,Parolaccia,malus
 EDU009,2,+2,Prova del gioco,bonus
 PRE001,2,+2,Prova del gioco,bonus
 ANI009,2,+2,Prova del gioco,bonus
+EDU004,2,+3,Soluzione gioco,bonus
+PRE005,2,+2,Sollevamento bambini per più di 5 minuti,bonus
+EDU005,2,+3,Soluzione gioco,bonus
+ANI003,2,+3,100 Metri Dietro ai Bambini,bonus
+AMC004,2,+2,Speaker per un giorno,bonus
