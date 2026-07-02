@@ -1,5 +1,6 @@
 import React from 'react';
 import { SQUADRE_LABEL } from '../context/DataContext';
+import { mergeBonusMalus } from '../utils/mergeBonusMalus';
 
 const RUOLO_CONFIG = {
   educatore:         { label: 'Educatore',       emoji: '🙏',  color: '#6c63ff' },
@@ -75,11 +76,11 @@ export function PersonaggioDettaglioCard({ personaggio, bonusMalus, giorno }) {
       </div>
       {bm.length > 0 ? (
         <div className="pd-bm">
-          {bm.map((b, i) => {
-            const pts = parseFloat((b.punti || '0').replace('+', ''));
+          {mergeBonusMalus(bm).map((b, i) => {
+            const pts = parseFloat((b.punti || '0').replace('+', '')) * b.count;
             return (
               <div key={i} className={`bm-row ${b.tipo === 'bonus' ? 'bonus' : 'malus'}`}>
-                <span>{b.tipo === 'bonus' ? '✅' : '❌'} {b.descrizione}</span>
+                <span>{b.tipo === 'bonus' ? '✅' : '❌'} {b.descrizione}{b.count > 1 ? ` ×${b.count}` : ''}</span>
                 <span className="bm-pts">{pts > 0 ? '+' : ''}{pts}</span>
               </div>
             );

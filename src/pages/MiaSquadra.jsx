@@ -2,6 +2,7 @@ import React, { useState } from 'react';
 import { useAuth } from '../context/AuthContext';
 import { useData } from '../context/DataContext';
 import { SQUADRE_LABEL } from '../context/DataContext';
+import { mergeBonusMalus } from '../utils/mergeBonusMalus';
 
 const RUOLI = [
   { key: 'educatore',       label: 'Educatore',       emoji: '🙏',  color: '#6c63ff' },
@@ -53,12 +54,12 @@ export default function MiaSquadra({ onModifica }) {
         {Object.keys(perGiorno).sort((a, b) => parseInt(a) - parseInt(b)).map(g => (
           <div key={g} className="ms-bm-giorno">
             <span className="ms-bm-giorno-label">Giorno {g}</span>
-            {perGiorno[g].map((b, i) => {
-              const pts = parseFloat((b.punti || '0').replace('+', ''));
+            {mergeBonusMalus(perGiorno[g]).map((b, i) => {
+              const pts = parseFloat((b.punti || '0').replace('+', '')) * b.count;
               return (
                 <div key={i} className={`ms-bm-item ${b.tipo}`}>
                   <span className="ms-bm-icon">{b.tipo === 'bonus' ? '✅' : '❌'}</span>
-                  <span className="ms-bm-desc">{b.descrizione}</span>
+                  <span className="ms-bm-desc">{b.descrizione}{b.count > 1 ? ` ×${b.count}` : ''}</span>
                   <span className={`ms-bm-pts ${pts >= 0 ? 'pos' : 'neg'}`}>
                     {pts > 0 ? '+' : ''}{pts}
                   </span>

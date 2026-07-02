@@ -772,6 +772,8 @@ body {
   margin-top: 2px;
 }
 
+.squadre-giorno-list { display: flex; flex-direction: column; gap: 8px; margin-bottom: 4px; }
+
 .giornata-rank { display: flex; flex-direction: column; gap: 8px; }
 .giornata-row {
   background: var(--card);

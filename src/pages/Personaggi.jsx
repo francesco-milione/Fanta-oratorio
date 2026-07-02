@@ -1,5 +1,6 @@
 import React, { useState, useMemo } from 'react';
 import { useData } from '../context/DataContext';
+import { mergeBonusMalus } from '../utils/mergeBonusMalus';
 
 const RUOLO_CONFIG = {
   educatore:          { label: 'Educatore',       emoji: '🙏',  color: '#6c63ff' },
@@ -130,11 +131,11 @@ export default function Personaggi() {
                                   <span>{g.votoBase.toFixed(1)}</span>
                                 </div>
                               )}
-                              {g.bm.map((b, bi) => {
-                                const pts = parseFloat((b.punti || '0').replace('+', ''));
+                              {mergeBonusMalus(g.bm).map((b, bi) => {
+                                const pts = parseFloat((b.punti || '0').replace('+', '')) * b.count;
                                 return (
                                   <div key={bi} className={`pg-bm-row ${b.tipo === 'bonus' ? 'bonus' : 'malus'}`}>
-                                    <span>{b.tipo === 'bonus' ? '✅' : '❌'} {b.descrizione}</span>
+                                    <span>{b.tipo === 'bonus' ? '✅' : '❌'} {b.descrizione}{b.count > 1 ? ` ×${b.count}` : ''}</span>
                                     <span className={pts >= 0 ? 'pos' : 'neg'}>
                                       {pts > 0 ? '+' : ''}{pts}
                                     </span>

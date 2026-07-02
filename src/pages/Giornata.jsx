@@ -1,5 +1,7 @@
 import React, { useState } from 'react';
-import { useData } from '../context/DataContext';
+import { useData, SQUADRE_ORATORIO } from '../context/DataContext';
+import { SquadraCard } from '../components/PersonaggioCard';
+import { groupBonusMalusByEvento } from '../utils/mergeBonusMalus';
 
 export default function Giornata() {
   const { personaggi, votazioni, bonusMalus, giorni } = useData();
@@ -7,6 +9,18 @@ export default function Giornata() {
 
   const votiGiorno = votazioni.filter(v => v.giorno === String(giorno));
   const bmGiorno = bonusMalus.filter(b => b.giorno === String(giorno));
+
+  // Punteggio delle squadre oratorio per il giorno selezionato
+  const squadreGiorno = SQUADRE_ORATORIO.map(sq => {
+    const voto = votiGiorno.find(v => v.id_squadra?.toLowerCase() === sq);
+    const bm = bmGiorno.filter(b => b.id_personaggio?.toLowerCase() === sq);
+    const votoBase = voto ? parseFloat(voto.voto_base || 0) : 0;
+    const totaleBM = bm.reduce((acc, b) => acc + parseFloat((b.punti || '0').replace('+', '')), 0);
+    const totale = votoBase + totaleBM;
+    return { squadra: sq, votoBase, totaleBM, totale, numGiorni: voto ? 1 : 0, hasDati: voto !== undefined || bm.length > 0 };
+  })
+    .filter(s => s.hasDati)
+    .sort((a, b) => b.totale - a.totale);
 
   // Calcola punteggio giornaliero per ogni personaggio
   const rankGiorno = personaggi.map(p => {
@@ -20,12 +34,12 @@ export default function Giornata() {
     .filter(p => p.hasDati)
     .sort((a, b) => b.totaleGiorno - a.totaleGiorno);
 
-  const topBonus = [...bmGiorno]
-    .filter(b => b.tipo === 'bonus')
+  // Eventi bonus/malus del giorno: stessa descrizione + stesso punteggio
+  // assegnati a persone diverse vengono uniti in un'unica riga
+  const topBonus = groupBonusMalusByEvento(bmGiorno.filter(b => b.tipo === 'bonus'))
     .sort((a, b) => parseFloat((b.punti || '0').replace('+', '')) - parseFloat((a.punti || '0').replace('+', '')));
 
-  const topMalus = [...bmGiorno]
-    .filter(b => b.tipo === 'malus')
+  const topMalus = groupBonusMalusByEvento(bmGiorno.filter(b => b.tipo === 'malus'))
     .sort((a, b) => parseFloat((a.punti || '0').replace('+', '')) - parseFloat((b.punti || '0').replace('+', '')));
 
   return (
@@ -58,6 +72,24 @@ export default function Giornata() {
 
       {giorno && (
         <>
+          {/* Punteggi squadre del giorno */}
+          <section className="section">
+            <h3 className="section-title">🏟️ Squadre del Giorno {giorno}</h3>
+            {squadreGiorno.length === 0 ? (
+              <div className="empty-state"><span>🏟️</span><p>Nessun punteggio squadra ancora per questo giorno</p></div>
+            ) : (
+              <div className="squadre-giorno-list">
+                {squadreGiorno.map(s => (
+                  <SquadraCard
+                    key={s.squadra}
+                    squadraOratorio={s.squadra}
+                    squadraScore={{ votoBase: s.votoBase, totaleBM: s.totaleBM, totale: s.totale, numGiorni: s.numGiorni }}
+                  />
+                ))}
+              </div>
+            )}
+          </section>
+
           {/* Top personaggi del giorno */}
           <section className="section">
             <h3 className="section-title">📊 Voti del Giorno {giorno}</h3>
@@ -98,13 +130,13 @@ export default function Giornata() {
               <h3 className="section-title">✅ Migliori del Giorno</h3>
               <div className="eventi-list">
                 {topBonus.map((b, i) => {
-                  const p = personaggi.find(x => x.id === b.id_personaggio);
+                  const nomi = b.ids.map(id => personaggi.find(x => x.id === id)?.nome || id);
                   const pts = parseFloat((b.punti || '0').replace('+', ''));
                   return (
                     <div key={i} className="evento-item bonus">
                       <span className="evento-icon">🌟</span>
                       <div className="evento-info">
-                        <span className="evento-nome">{p?.nome || b.id_personaggio}</span>
+                        <span className="evento-nome">{nomi.join(', ')}</span>
                         <span className="evento-desc">{b.descrizione}</span>
                       </div>
                       <span className="evento-pts pos">+{pts}</span>
@@ -121,13 +153,13 @@ export default function Giornata() {
               <h3 className="section-title">❌ Episodi Negativi</h3>
               <div className="eventi-list">
                 {topMalus.map((b, i) => {
-                  const p = personaggi.find(x => x.id === b.id_personaggio);
+                  const nomi = b.ids.map(id => personaggi.find(x => x.id === id)?.nome || id);
                   const pts = parseFloat((b.punti || '0').replace('+', ''));
                   return (
                     <div key={i} className="evento-item malus">
                       <span className="evento-icon">😬</span>
                       <div className="evento-info">
-                        <span className="evento-nome">{p?.nome || b.id_personaggio}</span>
+                        <span className="evento-nome">{nomi.join(', ')}</span>
                         <span className="evento-desc">{b.descrizione}</span>
                       </div>
                       <span className="evento-pts neg">{pts}</span>
