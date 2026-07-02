@@ -145,6 +145,7 @@ export default function AdminPage() {
     { key: 'giornata',    label: '⭐ Giornata' },
     { key: 'regolamento', label: '📋 Regolamento' },
     { key: 'voti',        label: '📊 Voti' },
+    { key: 'capitano',    label: '🎖️ Capitano' },
   ];
 
   return (
@@ -168,6 +169,7 @@ export default function AdminPage() {
         {tab === 'giornata'    && <GiornataTab    personaggi={personaggi} showToast={showToast} />}
         {tab === 'regolamento' && <RegolamentoTab showToast={showToast} />}
         {tab === 'voti'        && <VotiTab        showToast={showToast} />}
+        {tab === 'capitano'    && <CapitanoTab    showToast={showToast} />}
       </div>
 
       {toast && (
@@ -1044,6 +1046,112 @@ function VotiTab({ showToast }) {
 }
 
 // ─────────────────────────────────────────────────────────────────────────────
+// TAB: CAPITANO (flag globale + giorno del raddoppio punti, su Supabase)
+// ─────────────────────────────────────────────────────────────────────────────
+function CapitanoTab({ showToast }) {
+  const [impostazioni, setImpostazioni] = useState(null);
+  const [loading, setLoading]           = useState(true);
+  const [dbError, setDbError]           = useState(false);
+  const [giornoInput, setGiornoInput]   = useState('');
+  const [salvando, setSalvando]         = useState(false);
+
+  const fetchImpostazioni = useCallback(async () => {
+    setLoading(true);
+    const { data, error } = await supabase.from('impostazioni').select('*').eq('id', 1).maybeSingle();
+    setLoading(false);
+    if (error) { setDbError(true); return; }
+    setImpostazioni(data || { id: 1, capitano_attivo: false, giorno_capitano: null });
+    setGiornoInput(data?.giorno_capitano ?? '');
+  }, []);
+
+  useEffect(() => { fetchImpostazioni(); }, [fetchImpostazioni]);
+
+  async function toggleAttivo() {
+    if (!impostazioni) return;
+    setSalvando(true);
+    const nuovoValore = !impostazioni.capitano_attivo;
+    const { error } = await supabase.from('impostazioni')
+      .update({ capitano_attivo: nuovoValore }).eq('id', 1);
+    setSalvando(false);
+    if (error) { showToast('Errore salvataggio', 'err'); return; }
+    setImpostazioni(prev => ({ ...prev, capitano_attivo: nuovoValore }));
+    showToast(nuovoValore ? 'Bottone "Imposta capitano" ATTIVATO per tutti' : 'Bottone "Imposta capitano" disattivato');
+  }
+
+  async function salvaGiorno() {
+    const n = giornoInput === '' ? null : parseInt(giornoInput, 10);
+    if (giornoInput !== '' && (!n || n < 1 || n > 99)) { showToast('Numero giorno non valido (1-99)', 'err'); return; }
+    setSalvando(true);
+    const { error } = await supabase.from('impostazioni')
+      .update({ giorno_capitano: n }).eq('id', 1);
+    setSalvando(false);
+    if (error) { showToast('Errore salvataggio', 'err'); return; }
+    setImpostazioni(prev => ({ ...prev, giorno_capitano: n }));
+    showToast(n ? `Giorno del raddoppio impostato: Giornata ${n}` : 'Giorno del raddoppio rimosso');
+  }
+
+  if (dbError) return <SetupPanel missingTable="impostazioni" />;
+  if (loading) return <div style={{ padding: 40, textAlign: 'center', color: '#475569' }}>Caricamento...</div>;
+
+  return (
+    <div style={{ display: 'flex', flexDirection: 'column', gap: 16 }}>
+      <div style={S.sectionCard}>
+        <div style={S.sectionHeader}>
+          <span style={{ fontWeight: 700, fontSize: 15 }}>🎖️ Scelta del capitano</span>
+        </div>
+        <div style={{ padding: 20, display: 'flex', flexDirection: 'column', gap: 16 }}>
+          <div style={{ color: '#94a3b8', fontSize: 13, lineHeight: 1.5 }}>
+            Quando questo flag è <strong style={{ color: '#e2e8f0' }}>attivo</strong>, ogni squadra vede
+            il bottone "Imposta capitano" e può scegliere (e cambiare idea) liberamente il proprio capitano.
+            Disattivalo quando vuoi bloccare la scelta.
+          </div>
+          <div style={{ display: 'flex', alignItems: 'center', gap: 14 }}>
+            <button
+              style={{
+                ...S.btnPrimary,
+                background: impostazioni?.capitano_attivo ? '#22c55e' : '#334155',
+                color: impostazioni?.capitano_attivo ? '#0f172a' : '#94a3b8',
+              }}
+              disabled={salvando}
+              onClick={toggleAttivo}
+            >
+              {impostazioni?.capitano_attivo ? '✅ Attivo — clicca per disattivare' : '⭕ Disattivato — clicca per attivare'}
+            </button>
+          </div>
+        </div>
+      </div>
+
+      <div style={S.sectionCard}>
+        <div style={S.sectionHeader}>
+          <span style={{ fontWeight: 700, fontSize: 15 }}>📅 Giorno del raddoppio punti</span>
+        </div>
+        <div style={{ padding: 20, display: 'flex', flexDirection: 'column', gap: 12 }}>
+          <div style={{ color: '#94a3b8', fontSize: 13, lineHeight: 1.5 }}>
+            Il capitano di ogni squadra prende il <strong style={{ color: '#e2e8f0' }}>doppio dei punti</strong> guadagnati
+            (bonus/malus) solo in questa giornata. Lascia vuoto per non applicare ancora nessun raddoppio.
+          </div>
+          <div style={{ display: 'flex', gap: 10, alignItems: 'center', flexWrap: 'wrap' }}>
+            <span style={S.label}>Giornata:</span>
+            <input
+              type="number" min="1" max="99" placeholder="es. 5"
+              value={giornoInput} onChange={e => setGiornoInput(e.target.value)}
+              onKeyDown={e => e.key === 'Enter' && salvaGiorno()}
+              style={{ ...S.select, width: 100 }}
+            />
+            <button style={S.btnPrimary} disabled={salvando} onClick={salvaGiorno}>Salva</button>
+            {impostazioni?.giorno_capitano != null && (
+              <span style={{ color: '#4ade80', fontSize: 13 }}>
+                ✓ Attualmente impostato: Giornata {impostazioni.giorno_capitano}
+              </span>
+            )}
+          </div>
+        </div>
+      </div>
+    </div>
+  );
+}
+
+// ─────────────────────────────────────────────────────────────────────────────
 // Pannello setup Supabase (tabelle mancanti)
 // ─────────────────────────────────────────────────────────────────────────────
 function SetupPanel({ missingTable }) {
@@ -1070,9 +1178,25 @@ CREATE TABLE IF NOT EXISTS bonus_malus_live (
   created_at    TIMESTAMPTZ DEFAULT NOW()
 );
 
+-- Funzionalità "Capitano": colonna su giocatori + tabella impostazioni globali
+ALTER TABLE giocatori ADD COLUMN IF NOT EXISTS capitano TEXT;
+
+CREATE TABLE IF NOT EXISTS impostazioni (
+  id               INTEGER PRIMARY KEY DEFAULT 1,
+  capitano_attivo  BOOLEAN NOT NULL DEFAULT FALSE,
+  giorno_capitano  INTEGER,
+  updated_at       TIMESTAMPTZ DEFAULT NOW(),
+  CONSTRAINT impostazioni_singleton CHECK (id = 1)
+);
+
+INSERT INTO impostazioni (id, capitano_attivo, giorno_capitano)
+VALUES (1, FALSE, NULL)
+ON CONFLICT (id) DO NOTHING;
+
 -- Disabilita RLS (o configura le policy che preferisci)
 ALTER TABLE regolamento       DISABLE ROW LEVEL SECURITY;
-ALTER TABLE bonus_malus_live  DISABLE ROW LEVEL SECURITY;`;
+ALTER TABLE bonus_malus_live  DISABLE ROW LEVEL SECURITY;
+ALTER TABLE impostazioni      DISABLE ROW LEVEL SECURITY;`;
 
   function copySql() {
     navigator.clipboard.writeText(sql);

@@ -47,6 +47,7 @@ export function DataProvider({ children }) {
     utenti: [],
     votazioni: [],   // ora per squadra oratorio: { id_squadra, giorno, voto_base }
     bonusMalus: [],
+    impostazioni: { capitano_attivo: false, giorno_capitano: null },
     loading: true,
     error: null,
     lastUpdate: null,
@@ -55,7 +56,7 @@ export function DataProvider({ children }) {
   const loadData = useCallback(async () => {
     try {
       setData(d => ({ ...d, loading: true, error: null }));
-      const [[p, u, v, b], giocatoriRes] = await Promise.all([
+      const [[p, u, v, b], giocatoriRes, impostazioniRes] = await Promise.all([
         Promise.all([
           fetchCSV('/data/personaggi.csv'),
           fetchCSV('/data/utenti.csv'),
@@ -63,6 +64,10 @@ export function DataProvider({ children }) {
           fetchCSV('/data/bonus_malus.csv'),
         ]),
         supabase.from('giocatori').select('*').order('created_at', { ascending: true }),
+        // Tabella opzionale: se non esiste ancora (migrazione non eseguita) non
+        // deve bloccare il resto del sito, quindi l'errore viene ignorato qui
+        // e gestito solo dove serve (tab admin "Capitano").
+        supabase.from('impostazioni').select('*').eq('id', 1).maybeSingle(),
       ]);
       if (giocatoriRes.error) throw new Error(`Supabase: ${giocatoriRes.error.message}`);
       setData({
@@ -71,6 +76,7 @@ export function DataProvider({ children }) {
         utenti: parseCSV(u),
         votazioni: parseCSV(v),
         bonusMalus: parseCSV(b),
+        impostazioni: impostazioniRes?.data || { capitano_attivo: false, giorno_capitano: null },
         loading: false,
         error: null,
         lastUpdate: new Date(),
@@ -103,6 +109,18 @@ export function DataProvider({ children }) {
     return { votoBase, totaleBM, totale: votoBase + totaleBM, numGiorni: voti.length };
   }, [data.votazioni, data.bonusMalus]);
 
+  // Punti extra del capitano: raddoppia (aggiungendoli una seconda volta) i
+  // punti bonus/malus guadagnati esclusivamente nel giorno "giorno_capitano"
+  // impostato dall'admin. Non tocca gli altri giorni né gli altri ruoli.
+  const getBonusCapitanoGiorno = useCallback((idPersonaggio) => {
+    const giornoCap = data.impostazioni?.giorno_capitano;
+    if (!giornoCap && giornoCap !== 0) return 0;
+    const bm = data.bonusMalus.filter(
+      b => b.id_personaggio === idPersonaggio && String(b.giorno) === String(giornoCap)
+    );
+    return bm.reduce((acc, b) => acc + parseFloat((b.punti || '0').replace('+', '')), 0);
+  }, [data.bonusMalus, data.impostazioni]);
+
   // Punteggio totale della squadra fantasy
   const getSquadraScore = useCallback((giocatore) => {
     let totale = 0;
@@ -113,8 +131,20 @@ export function DataProvider({ children }) {
       if (!id) return;
       const score = getPersonaggioScore(id);
       const personaggio = data.personaggi.find(p => p.id === id);
-      dettagli.push({ ruolo: r.key, id, nome: personaggio?.nome || id, ...score });
-      totale += score.totale;
+      const isCapitano = giocatore.capitano === r.key;
+      const bonusCapitano = isCapitano ? getBonusCapitanoGiorno(id) : 0;
+      const totaleRuolo = score.totale + bonusCapitano;
+      dettagli.push({
+        ruolo: r.key,
+        id,
+        nome: personaggio?.nome || id,
+        ...score,
+        totaleBM: score.totaleBM + bonusCapitano,
+        totale: totaleRuolo,
+        isCapitano,
+        bonusCapitano,
+      });
+      totale += totaleRuolo;
     });
 
     const squadraOratorio = giocatore['squadra-oratorio'];
@@ -205,6 +235,7 @@ export function DataProvider({ children }) {
       getPersonaggioScore,
       getSquadraOratorioScore,
       getSquadraScore,
+      getBonusCapitanoGiorno,
       reload: loadData,
     }}>
       {children}

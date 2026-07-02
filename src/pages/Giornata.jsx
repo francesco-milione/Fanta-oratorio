@@ -1,11 +1,19 @@
 import React, { useState } from 'react';
 import { useData, SQUADRE_ORATORIO } from '../context/DataContext';
+import { useAuth } from '../context/AuthContext';
 import { SquadraCard } from '../components/PersonaggioCard';
 import { groupBonusMalusByEvento } from '../utils/mergeBonusMalus';
 
 export default function Giornata() {
-  const { personaggi, votazioni, bonusMalus, giorni } = useData();
+  const { personaggi, votazioni, bonusMalus, giorni, impostazioni } = useData();
+  const { utente } = useAuth();
   const [giorno, setGiorno] = useState(giorni[giorni.length - 1] ?? '1');
+
+  // Capitano dell'utente loggato (se ha una squadra) e se il giorno selezionato
+  // è quello in cui i suoi punti valgono doppio
+  const capitanoId = utente?.capitano ? utente[utente.capitano] : null;
+  const giornoCapitano = impostazioni?.giorno_capitano;
+  const isGiornoCapitano = giornoCapitano != null && String(giornoCapitano) === String(giorno);
 
   const votiGiorno = votazioni.filter(v => v.giorno === String(giorno));
   const bmGiorno = bonusMalus.filter(b => b.giorno === String(giorno));
@@ -72,6 +80,14 @@ export default function Giornata() {
 
       {giorno && (
         <>
+          {isGiornoCapitano && capitanoId && (
+            <div className="capitano-banner">
+              ⭐ <strong>Giorno {giorno}</strong> è il giorno del raddoppio: i punti bonus/malus del tuo
+              capitano ({personaggi.find(p => p.id === capitanoId)?.nome || capitanoId}) valgono doppio
+              per la tua squadra (non cambia la classifica del personaggio qui sotto, che è uguale per tutti).
+            </div>
+          )}
+
           {/* Punteggi squadre del giorno */}
           <section className="section">
             <h3 className="section-title">🏟️ Squadre del Giorno {giorno}</h3>
@@ -101,7 +117,12 @@ export default function Giornata() {
                   <div key={p.id} className={`giornata-row ${i === 0 ? 'top' : ''}`}>
                     <span className="gr-pos">{i + 1}</span>
                     <div className="gr-info">
-                      <span className="gr-nome">{p.nome}</span>
+                      <span className="gr-nome">
+                        {p.nome}
+                        {isGiornoCapitano && p.id === capitanoId && (
+                          <span className="gr-capitano-tag">⭐ tuo capitano ×2</span>
+                        )}
+                      </span>
                       <span className="gr-ruolo">{p.ruolo}</span>
                     </div>
                     {p.votoBase !== null && (
