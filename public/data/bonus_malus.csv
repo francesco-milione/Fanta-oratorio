@@ -102,3 +102,14 @@ EDU008,3,-3,Chiedono di farsi aggiungere punti,malus
 EDU009,3,-3,Chiedono di farsi aggiungere punti,malus
 EDU006,3,-3,Chiedono di farsi aggiungere punti,malus
 AMC001,3,+3,Aver cantato Rose Villain,bonus
+PRE005,3,+2,Intrattiene i bambini,bonus
+EDU001,3,+2,Sopporta tutti,bonus
+AMC002,3,+3,Nuovo termine,bonus
+EDU009,3,+3,Nuovo termine,bonus
+ANI001,3,+3,Perla di Adelina,bonus
+ANI001,3,+2,Nuovo passo,bonus
+EDU009,3,+2,Nuovo passo,bonus
+ANI002,3,+2,Nuovo passo,bonus
+EDU005,3,+2,NUTELLA,bonus
+EDU003,3,+2,NUTELLA,bonus
+EDU002,3,+2,SDA corriere espresso,bonus
