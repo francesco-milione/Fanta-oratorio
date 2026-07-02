@@ -7,7 +7,7 @@ const MEDAL = ['🥇', '🥈', '🥉'];
 
 export default function Classifica() {
   const { utente } = useAuth();
-  const { classifica, personaggi } = useData();
+  const { classifica, personaggi, squadraIdeale } = useData();
   const [expanded, setExpanded] = useState(null);
 
   const toggle = (codice) => setExpanded(prev => prev === codice ? null : codice);
@@ -101,6 +101,59 @@ export default function Classifica() {
           );
         })}
       </div>
+
+      {/* Squadra ideale: il migliore per ogni ruolo, la formazione più forte teoricamente possibile */}
+      {squadraIdeale && squadraIdeale.dettagli.length > 0 && (
+        <section className="section" style={{ marginTop: 28 }}>
+          <h3 className="section-title">🌟 Squadra Ideale</h3>
+          <p className="page-subtitle" style={{ marginTop: -6, marginBottom: 10 }}>
+            La formazione più forte possibile, scegliendo il migliore per ogni ruolo
+          </p>
+          <div className="classifica-row ideale">
+            <div className="cl-main">
+              <div className="cl-pos"><span className="medal">🌟</span></div>
+              <div className="cl-info">
+                <span className="cl-squadra">Squadra Ideale</span>
+                <span className="cl-owner">Il meglio di ogni ruolo</span>
+              </div>
+              <div className="cl-score">
+                <span className="cl-pts">{squadraIdeale.totale.toFixed(1)}</span>
+              </div>
+            </div>
+            <div className="cl-dettagli">
+              <div className="cl-dettagli-title">Formazione</div>
+              <div className="cl-formazione">
+                {squadraIdeale.dettagli.map((d, i) => (
+                  <div key={i} className="cl-membro">
+                    <div className="cl-membro-info">
+                      <span className="cl-membro-ruolo">{d.ruoloLabel}</span>
+                      <span className="cl-membro-nome">{d.nome}</span>
+                    </div>
+                    <div className="cl-membro-score">
+                      <span className="cl-membro-pts">{d.score.toFixed(1)}</span>
+                    </div>
+                  </div>
+                ))}
+                {squadraIdeale.squadraOratorio && squadraIdeale.squadraScore && (() => {
+                  const info = SQUADRE_LABEL[squadraIdeale.squadraOratorio];
+                  if (!info) return null;
+                  return (
+                    <div className="cl-membro">
+                      <div className="cl-membro-info">
+                        <span className="cl-membro-ruolo">{info.emoji} Squadra</span>
+                        <span className="cl-membro-nome">{info.label}</span>
+                      </div>
+                      <div className="cl-membro-score">
+                        <span className="cl-membro-pts">{squadraIdeale.squadraScore.totale.toFixed(1)}</span>
+                      </div>
+                    </div>
+                  );
+                })()}
+              </div>
+            </div>
+          </div>
+        </section>
+      )}
     </div>
   );
 }

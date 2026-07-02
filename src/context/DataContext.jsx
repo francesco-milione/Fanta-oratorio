@@ -134,6 +134,56 @@ export function DataProvider({ children }) {
       .map((g, i) => ({ ...g, posizione: i + 1 }));
   }, [data.giocatori, getSquadraScore]);
 
+  // Squadra ideale: il migliore per ogni ruolo della formazione (educatore,
+  // 2 animatori, pre animatore, amico san carlo) + la migliore squadra oratorio,
+  // cioè la formazione più forte teoricamente possibile con le regole del gioco.
+  const squadraIdeale = React.useMemo(() => {
+    const conPunteggio = data.personaggi.map(p => ({ ...p, score: getPersonaggioScore(p.id).totale }));
+    const migliori = (ruolo) => conPunteggio
+      .filter(p => p.ruolo === ruolo)
+      .sort((a, b) => b.score - a.score);
+
+    const dettagli = [];
+    let totale = 0;
+
+    const educatori = migliori('educatore');
+    if (educatori[0]) {
+      dettagli.push({ ruoloKey: 'educatore', ruoloLabel: 'Educatore', ...educatori[0] });
+      totale += educatori[0].score;
+    }
+
+    migliori('animatore').slice(0, 2).forEach((a, i) => {
+      dettagli.push({ ruoloKey: `animatore${i + 1}`, ruoloLabel: 'Animatore', ...a });
+      totale += a.score;
+    });
+
+    const preAnimatori = migliori('pre animatore');
+    if (preAnimatori[0]) {
+      dettagli.push({ ruoloKey: 'pre animatore', ruoloLabel: 'Pre Animatore', ...preAnimatori[0] });
+      totale += preAnimatori[0].score;
+    }
+
+    const amici = migliori('amico san carlo');
+    if (amici[0]) {
+      dettagli.push({ ruoloKey: 'amico san carlo', ruoloLabel: 'Amico San Carlo', ...amici[0] });
+      totale += amici[0].score;
+    }
+
+    // Migliore squadra oratorio tra le 4
+    let squadraOratorio = null;
+    let squadraScore = null;
+    SQUADRE_ORATORIO.forEach(sq => {
+      const s = getSquadraOratorioScore(sq);
+      if (!squadraScore || s.totale > squadraScore.totale) {
+        squadraScore = s;
+        squadraOratorio = sq;
+      }
+    });
+    if (squadraScore) totale += squadraScore.totale;
+
+    return { dettagli, totale, squadraOratorio, squadraScore };
+  }, [data.personaggi, getPersonaggioScore, getSquadraOratorioScore]);
+
   // Giorni dai voti squadra e bonus/malus (escluse le squadre stesse dai bm)
   const giorni = React.useMemo(() => {
     const squadreSet = new Set(SQUADRE_ORATORIO);
@@ -150,6 +200,7 @@ export function DataProvider({ children }) {
     <DataContext.Provider value={{
       ...data,
       classifica,
+      squadraIdeale,
       giorni,
       getPersonaggioScore,
       getSquadraOratorioScore,

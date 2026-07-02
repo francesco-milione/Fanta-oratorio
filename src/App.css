@@ -640,6 +640,12 @@ body {
   background: linear-gradient(to right, var(--viola-lt), white);
 }
 .classifica-row.open { border-color: var(--viola-mid); }
+.classifica-row.ideale {
+  border-color: var(--giallo);
+  background: linear-gradient(to right, var(--giallo-lt), white);
+  cursor: default;
+}
+.classifica-row.ideale .cl-pts { color: var(--giallo); }
 
 .cl-main {
   display: flex; align-items: center; gap: 14px;
