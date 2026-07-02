@@ -93,3 +93,12 @@ EDU002,3,+5,Sfamatrice di bambini 🍔,bonus
 EDU001,3,+2,Affronta situazione pericolosa,bonus
 ANI005,3,-1,Bagnato Morena,malus
 EDU003,3,-1,Bagnato Morena,malus
+ANI009,3,+2,Boh non mi è stato detto il perchè,bonus
+ANI010,3,+2,Boh non mi è stato detto il perchè,bonus
+EDU001,3,+2,Esce dalla finestra,bonus
+ANI003,3,+2,Recupero occhiali 👓,bonus
+AMC005,3,+2,Recupero occhiali 👓,bonus
+EDU008,3,-3,Chiedono di farsi aggiungere punti,malus
+EDU009,3,-3,Chiedono di farsi aggiungere punti,malus
+EDU006,3,-3,Chiedono di farsi aggiungere punti,malus
+AMC001,3,+3,Aver cantato Rose Villain,bonus
