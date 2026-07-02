@@ -90,3 +90,6 @@ AMC001,3,+2,Animazione,bonus
 EDU007,3,+2,Animazione,bonus
 ANI010,3,+2,Uomo multitasking 📈,bonus
 EDU002,3,+5,Sfamatrice di bambini 🍔,bonus
+EDU001,3,+2,Affronta situazione pericolosa,bonus
+ANI005,3,-1,Bagnato Morena,malus
+EDU003,3,-1,Bagnato Morena,malus
