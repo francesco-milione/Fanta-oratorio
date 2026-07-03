@@ -126,3 +126,55 @@ ANI004,3,+2,Vikings 🇳🇴,bonus
 EDU006,3,+2,Pulizie Extra,bonus
 EDU008,3,+2,Pulizie Extra,bonus
 EDU004,3,-10,Per aver portato il libro a Don Marco,malus
+EDU004,4,+1,Bonus Danza,bonus
+AMC002,4,+1,Bonus Danza,bonus
+AMC001,4,+1,Bonus Danza,bonus
+PRE007,4,+1,Bonus Danza,bonus
+PRE006,4,+1,Bonus Danza,bonus
+PRE003,4,+1,Bonus Danza,bonus
+PRE002,4,+1,Bonus Danza,bonus
+ANI015,4,+1,Bonus Danza,bonus
+ANI012,4,+1,Bonus Danza,bonus
+ANI011,4,+1,Bonus Danza,bonus
+ANI008,4,+1,Bonus Danza,bonus
+ANI006,4,+1,Bonus Danza,bonus
+ANI002,4,+1,Bonus Danza,bonus
+ANI001,4,+1,Bonus Danza,bonus
+EDU009,4,+1,Bonus Danza,bonus
+EDU008,4,+1,Bonus Danza,bonus
+EDU006,4,+1,Bonus Danza,bonus
+ANI001,4,+2,"Domenico non mi ha detto il motivo, sento odore di corruzione",bonus
+EDU009,4,+2,"Domenico non mi ha detto il motivo, sento odore di corruzione",bonus
+EDU004,4,+2,"Domenico non mi ha detto il motivo, sento odore di corruzione",bonus
+EDU002,4,+2,Merenda,bonus
+EDU003,4,+2,Merenda,bonus
+AMC005,4,+2,Bagna Don Vincenzo,bonus
+ANI004,4,+2,Netturbini,bonus
+ANI009,4,+2,Netturbini,bonus
+EDU001,4,+2,Netturbini,bonus
+ANI009,4,+2,Coro a Fausto,bonus
+ANI010,4,+2,Coro a Fausto,bonus
+AMC005,4,+5,Estathe limone,bonus
+ANI009,4,-2,Disturba il don,malus
+EDU004,4,-1,Chiede di farsi mettere punti,malus
+PRE003,4,+2,Tutti a ballare,bonus
+EDU007,4,+2,Tutti a ballare,bonus
+PRE005,4,+2,Tutti a ballare,bonus
+AMC003,4,-30,Non entrare,malus
+AMC004,4,+2,Tanti auguri a te,bonus
+AMC004,4,-1,Due pezzi di pizza in mano,malus
+ANI010,4,+2,Geppetto,bonus
+EDU003,4,+2,Geppetto,bonus
+AMC003,4,+2,Geppetto,bonus
+ANI003,4,+2,Geppetto,bonus
+AMC005,4,+2,Geppetto,bonus
+ANI004,4,+2,Geppetto,bonus
+ANI010,4,+2,Lavoro all’alba,bonus
+EDU007,4,+2,Lavoro all’alba,bonus
+EDU001,4,+2,Lavoro all’alba,bonus
+EDU010,4,+2,Lavoro all’alba,bonus
+EDU003,4,+2,Lavoro all’alba,bonus
+ANI013,4,+2,Lavoro all’alba,bonus
+AMC005,4,+2,Lavoro all’alba,bonus
+AMC002,4,+2,Lavoro all’alba,bonus
+ANI003,4,+2,Lavoro all’alba,bonus
