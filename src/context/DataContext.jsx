@@ -51,7 +51,7 @@ export function DataProvider({ children }) {
     utenti: [],
     votazioni: [],   // ora per squadra oratorio: { id_squadra, giorno, voto_base }
     bonusMalus: [],
-    impostazioni: { capitano_attivo: false, giorno_capitano: null, extra_attivo: false, extra_deadline: null },
+    impostazioni: { capitano_attivo: false, giorno_capitano: null, extra_attivo: false, extra_deadline: null, extra_giorno_da: null },
     loading: true,
     error: null,
     lastUpdate: null,
@@ -80,7 +80,7 @@ export function DataProvider({ children }) {
         utenti: parseCSV(u),
         votazioni: parseCSV(v),
         bonusMalus: parseCSV(b),
-        impostazioni: impostazioniRes?.data || { capitano_attivo: false, giorno_capitano: null, extra_attivo: false, extra_deadline: null },
+        impostazioni: impostazioniRes?.data || { capitano_attivo: false, giorno_capitano: null, extra_attivo: false, extra_deadline: null, extra_giorno_da: null },
         loading: false,
         error: null,
         lastUpdate: new Date(),
@@ -95,6 +95,21 @@ export function DataProvider({ children }) {
   // Punteggio di un singolo personaggio = solo bonus/malus (niente voto base)
   const getPersonaggioScore = useCallback((idPersonaggio) => {
     const bm = data.bonusMalus.filter(b => b.id_personaggio === idPersonaggio);
+    const totaleBM = bm.reduce((acc, b) => {
+      const p = parseFloat((b.punti || '0').replace('+', ''));
+      return acc + p;
+    }, 0);
+    return { totaleBM, totale: totaleBM };
+  }, [data.bonusMalus]);
+
+  // Punteggio di un personaggio contando solo i bonus/malus da una certa
+  // giornata in poi (usato per il "giocatore extra", i cui punti partono
+  // dalla giornata impostata dall'admin, non da tutto lo storico).
+  const getPersonaggioScoreDaGiorno = useCallback((idPersonaggio, giornoMin) => {
+    const bm = data.bonusMalus.filter(b =>
+      b.id_personaggio === idPersonaggio &&
+      (giornoMin == null || parseInt(b.giorno, 10) >= parseInt(giornoMin, 10))
+    );
     const totaleBM = bm.reduce((acc, b) => {
       const p = parseFloat((b.punti || '0').replace('+', ''));
       return acc + p;
@@ -152,10 +167,12 @@ export function DataProvider({ children }) {
     });
 
     // Giocatore extra (facoltativo): un personaggio in più, scelto o assegnato
-    // a caso alla chiusura. Non è mai capitano.
+    // a caso alla chiusura. Non è mai capitano. I suoi punti contano solo dalla
+    // giornata "extra_giorno_da" impostata dall'admin (non da tutto lo storico).
     const idExtra = giocatore['giocatore_extra'];
     if (idExtra) {
-      const scoreExtra = getPersonaggioScore(idExtra);
+      const giornoDa = data.impostazioni?.extra_giorno_da;
+      const scoreExtra = getPersonaggioScoreDaGiorno(idExtra, giornoDa);
       const personaggioExtra = data.personaggi.find(p => p.id === idExtra);
       dettagli.push({
         ruolo: 'giocatore_extra',
@@ -173,7 +190,7 @@ export function DataProvider({ children }) {
     totale += squadraScore.totale;
 
     return { totale, dettagli, squadraScore };
-  }, [getPersonaggioScore, getSquadraOratorioScore, data.personaggi]);
+  }, [getPersonaggioScore, getPersonaggioScoreDaGiorno, getSquadraOratorioScore, data.personaggi, data.impostazioni]);
 
   const classifica = React.useMemo(() => {
     return data.giocatori
@@ -254,6 +271,7 @@ export function DataProvider({ children }) {
       squadraIdeale,
       giorni,
       getPersonaggioScore,
+      getPersonaggioScoreDaGiorno,
       getSquadraOratorioScore,
       getSquadraScore,
       getBonusCapitanoGiorno,

@@ -1169,6 +1169,7 @@ function ExtraTab({ personaggi, utenti, showToast, reload }) {
   const [loading, setLoading]           = useState(true);
   const [dbError, setDbError]           = useState(false);
   const [deadlineInput, setDeadlineInput] = useState('');
+  const [giornoDaInput, setGiornoDaInput] = useState('');
   const [salvando, setSalvando]         = useState(false);
   const [giocatoriList, setGiocatoriList] = useState([]);
   const [loadingGiocatori, setLoadingGiocatori] = useState(true);
@@ -1180,9 +1181,10 @@ function ExtraTab({ personaggi, utenti, showToast, reload }) {
     const { data, error } = await supabase.from('impostazioni').select('*').eq('id', 1).maybeSingle();
     setLoading(false);
     if (error) { setDbError(true); return; }
-    const row = data || { id: 1, extra_attivo: false, extra_deadline: null };
+    const row = data || { id: 1, extra_attivo: false, extra_deadline: null, extra_giorno_da: null };
     setImpostazioni(row);
     setDeadlineInput(row.extra_deadline ? toLocalInputValue(row.extra_deadline) : '');
+    setGiornoDaInput(row.extra_giorno_da ?? '');
   }, []);
 
   const fetchGiocatori = useCallback(async () => {
@@ -1222,6 +1224,18 @@ function ExtraTab({ personaggi, utenti, showToast, reload }) {
     d.setHours(16, 0, 0, 0);
     setDeadlineInput(toLocalInputValue(d.toISOString()));
     salvaDeadline(d.toISOString());
+  }
+
+  async function salvaGiornoDa() {
+    const n = giornoDaInput === '' ? null : parseInt(giornoDaInput, 10);
+    if (giornoDaInput !== '' && (!n || n < 1 || n > 99)) { showToast('Numero giornata non valido (1-99)', 'err'); return; }
+    setSalvando(true);
+    const { error } = await supabase.from('impostazioni').update({ extra_giorno_da: n }).eq('id', 1);
+    setSalvando(false);
+    if (error) { showToast('Errore salvataggio', 'err'); return; }
+    setImpostazioni(prev => ({ ...prev, extra_giorno_da: n }));
+    showToast(n ? `I punti del giocatore extra contano dalla Giornata ${n}` : 'Nessun limite di giornata impostato');
+    reload?.();
   }
 
   // Assegna un giocatore extra casuale a tutte le squadre che non hanno ancora
@@ -1347,6 +1361,34 @@ function ExtraTab({ personaggi, utenti, showToast, reload }) {
 
       <div style={S.sectionCard}>
         <div style={S.sectionHeader}>
+          <span style={{ fontWeight: 700, fontSize: 15 }}>📅 Giornata da cui contano i punti</span>
+        </div>
+        <div style={{ padding: 20, display: 'flex', flexDirection: 'column', gap: 12 }}>
+          <div style={{ color: '#94a3b8', fontSize: 13, lineHeight: 1.5 }}>
+            I bonus/malus del giocatore extra si sommano al punteggio solo a partire da questa
+            giornata (quelle precedenti non contano, anche se il personaggio le aveva già giocate
+            in altri ruoli). Lascia vuoto per contare tutto lo storico.
+          </div>
+          <div style={{ display: 'flex', gap: 10, alignItems: 'center', flexWrap: 'wrap' }}>
+            <span style={S.label}>Giornata:</span>
+            <input
+              type="number" min="1" max="99" placeholder="es. 8"
+              value={giornoDaInput} onChange={e => setGiornoDaInput(e.target.value)}
+              onKeyDown={e => e.key === 'Enter' && salvaGiornoDa()}
+              style={{ ...S.select, width: 100 }}
+            />
+            <button style={S.btnPrimary} disabled={salvando} onClick={salvaGiornoDa}>Salva</button>
+            {impostazioni?.extra_giorno_da != null && (
+              <span style={{ color: '#4ade80', fontSize: 13 }}>
+                ✓ Attualmente impostato: dalla Giornata {impostazioni.extra_giorno_da}
+              </span>
+            )}
+          </div>
+        </div>
+      </div>
+
+      <div style={S.sectionCard}>
+        <div style={S.sectionHeader}>
           <span style={{ fontWeight: 700, fontSize: 15 }}>
             🎲 Assegnazione manuale ({nSenzaScelta} squadre senza scelta)
           </span>
@@ -1430,6 +1472,7 @@ ON CONFLICT (id) DO NOTHING;
 ALTER TABLE giocatori    ADD COLUMN IF NOT EXISTS giocatore_extra TEXT;
 ALTER TABLE impostazioni ADD COLUMN IF NOT EXISTS extra_attivo    BOOLEAN NOT NULL DEFAULT FALSE;
 ALTER TABLE impostazioni ADD COLUMN IF NOT EXISTS extra_deadline  TIMESTAMPTZ;
+ALTER TABLE impostazioni ADD COLUMN IF NOT EXISTS extra_giorno_da INTEGER;
 
 -- Disabilita RLS (o configura le policy che preferisci)
 ALTER TABLE regolamento       DISABLE ROW LEVEL SECURITY;

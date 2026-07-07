@@ -193,11 +193,18 @@ export default function MiaSquadra({ onModifica }) {
     );
   };
 
+  const extraGiornoDa = impostazioni?.extra_giorno_da ?? null;
+
   const renderExtra = () => {
     if (!giocatoreExtraId) return null;
     const personaggio = personaggi.find(p => p.id === giocatoreExtraId);
-    const bm = getPersonaggioScore(giocatoreExtraId).totaleBM ?? 0;
-    const bmList = getBmPerPersonaggio(giocatoreExtraId);
+    // Il totale mostrato viene da "dettagliByRuolo" (calcolato in DataContext),
+    // che conta i bonus/malus solo dalla giornata "extra_giorno_da" in poi.
+    const dettaglio = dettagliByRuolo['giocatore_extra'];
+    const bm = dettaglio?.totaleBM ?? 0;
+    const bmList = getBmPerPersonaggio(giocatoreExtraId).filter(b =>
+      extraGiornoDa == null || parseInt(b.giorno, 10) >= parseInt(extraGiornoDa, 10)
+    );
     const hasBm = bmList.length > 0;
     return (
       <div className="ms-card">
@@ -211,6 +218,9 @@ export default function MiaSquadra({ onModifica }) {
           <div className="personaggio-info">
             <span className="personaggio-ruolo" style={{ color: RUOLO_EXTRA.color }}>{RUOLO_EXTRA.label}</span>
             <span className="personaggio-nome">{personaggio?.nome || giocatoreExtraId}</span>
+            {extraGiornoDa != null && (
+              <span style={{ fontSize: 11, color: '#888', marginTop: 2 }}>punti dalla giornata {extraGiornoDa}</span>
+            )}
           </div>
           <div className="personaggio-score">
             <span className="score-big" style={{ color: bm < 0 ? '#ef4444' : bm > 0 ? '#10b981' : '#888' }}>
@@ -345,6 +355,9 @@ export default function MiaSquadra({ onModifica }) {
               {extraDeadline && (
                 <> Scegli entro <strong>{extraDeadline.toLocaleString('it-IT', { dateStyle: 'medium', timeStyle: 'short' })}</strong>,
                 altrimenti te ne verrà assegnato uno a caso.</>
+              )}
+              {extraGiornoDa != null && (
+                <> I suoi punti si sommano solo dalla <strong>Giornata {extraGiornoDa}</strong> in poi.</>
               )}
             </p>
             {giocatoreExtraId && (
