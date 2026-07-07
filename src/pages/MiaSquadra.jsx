@@ -1,7 +1,7 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect, useMemo } from 'react';
 import { useAuth } from '../context/AuthContext';
 import { useData } from '../context/DataContext';
-import { SQUADRE_LABEL } from '../context/DataContext';
+import { SQUADRE_LABEL, RUOLO_EXTRA } from '../context/DataContext';
 import { mergeBonusMalus } from '../utils/mergeBonusMalus';
 import { supabase } from '../supabaseClient';
 
@@ -15,9 +15,12 @@ const RUOLI = [
 
 export default function MiaSquadra({ onModifica }) {
   const { utente } = useAuth();
-  const { personaggi, classifica, bonusMalus, giorni, getPersonaggioScore, impostazioni, reload } = useData();
+  const { personaggi, giocatori, classifica, bonusMalus, giorni, getPersonaggioScore, impostazioni, reload } = useData();
   const [aperto, setAperto] = useState({});
   const [salvandoCapitano, setSalvandoCapitano] = useState(false);
+  const [salvandoExtra, setSalvandoExtra] = useState(false);
+  const [assegnandoAuto, setAssegnandoAuto] = useState(false);
+  const [cercaExtra, setCercaExtra] = useState('');
 
   const capitanoAttivo = !!impostazioni?.capitano_attivo;
 
@@ -29,6 +32,62 @@ export default function MiaSquadra({ onModifica }) {
     setSalvandoCapitano(false);
     if (!error) reload();
   }
+
+  // ── Giocatore extra: un personaggio in più a scelta, tra tutti quelli
+  // ancora liberi (esclude se stesso, chi è già nella propria formazione e
+  // chi è già stato preso da un'altra squadra come extra). Se non scelto
+  // entro la chiusura, ne viene assegnato uno a caso automaticamente.
+  const extraAttivo = !!impostazioni?.extra_attivo;
+  const extraDeadline = impostazioni?.extra_deadline ? new Date(impostazioni.extra_deadline) : null;
+  const extraChiuso = !!(extraDeadline && new Date() > extraDeadline);
+  const giocatoreExtraId = utente?.giocatore_extra || null;
+
+  const propriIds = useMemo(() => new Set(
+    [utente?.educatore, utente?.animatore1, utente?.animatore2, utente?.['pre animatore'], utente?.['amico san carlo']]
+      .filter(Boolean)
+  ), [utente]);
+
+  const presiDaAltri = useMemo(() => new Set(
+    (giocatori || [])
+      .filter(g => g.codice?.trim().toUpperCase() !== utente?.codice?.trim().toUpperCase() && g.giocatore_extra)
+      .map(g => g.giocatore_extra)
+  ), [giocatori, utente]);
+
+  const poolExtra = useMemo(() => personaggi.filter(p =>
+    p.id !== utente?.id_personaggio &&
+    !propriIds.has(p.id) &&
+    !presiDaAltri.has(p.id)
+  ), [personaggi, propriIds, presiDaAltri, utente]);
+
+  const risultatiExtra = useMemo(() => poolExtra.filter(p =>
+    p.nome.toLowerCase().includes(cercaExtra.toLowerCase()) || p.id.toLowerCase().includes(cercaExtra.toLowerCase())
+  ), [poolExtra, cercaExtra]);
+
+  async function scegliExtra(id) {
+    if (!utente?.codice || salvandoExtra) return;
+    setSalvandoExtra(true);
+    const { error } = await supabase.from('giocatori')
+      .update({ giocatore_extra: id }).eq('codice', utente.codice);
+    setSalvandoExtra(false);
+    if (!error) { setCercaExtra(''); reload(); }
+  }
+
+  // Assegnazione automatica alla chiusura: se il flag è attivo, la scadenza è
+  // passata e la squadra non ha ancora scelto, assegna un extra a caso tra
+  // quelli ancora liberi al primo caricamento dell'app.
+  useEffect(() => {
+    if (!extraAttivo || !extraChiuso) return;
+    if (!utente?.codice || giocatoreExtraId) return;
+    if (assegnandoAuto) return;
+    if (poolExtra.length === 0) return;
+    setAssegnandoAuto(true);
+    const scelta = poolExtra[Math.floor(Math.random() * poolExtra.length)];
+    supabase.from('giocatori').update({ giocatore_extra: scelta.id }).eq('codice', utente.codice)
+      .then(({ error }) => {
+        setAssegnandoAuto(false);
+        if (!error) reload();
+      });
+  }, [extraAttivo, extraChiuso, utente?.codice, giocatoreExtraId]); // eslint-disable-line
 
   const squadraInClassifica = classifica.find(g => g.codice === utente?.codice);
   const posizione = squadraInClassifica?.posizione ?? '—';
@@ -137,6 +196,38 @@ export default function MiaSquadra({ onModifica }) {
           )}
         </div>
         {renderBmList(bmList, ruolo.key, isCapitano ? giornoCapitano : null)}
+      </div>
+    );
+  };
+
+  const renderExtra = () => {
+    if (!giocatoreExtraId) return null;
+    const personaggio = personaggi.find(p => p.id === giocatoreExtraId);
+    const bm = getPersonaggioScore(giocatoreExtraId).totaleBM ?? 0;
+    const bmList = getBmPerPersonaggio(giocatoreExtraId);
+    const hasBm = bmList.length > 0;
+    return (
+      <div className="ms-card">
+        <div
+          className={`ms-card-header ${hasBm ? 'clickable' : ''}`}
+          onClick={hasBm ? () => toggleAperto('giocatore_extra') : undefined}
+        >
+          <div className="personaggio-avatar" style={{ background: RUOLO_EXTRA.color + '22', borderColor: RUOLO_EXTRA.color }}>
+            <span>{RUOLO_EXTRA.emoji}</span>
+          </div>
+          <div className="personaggio-info">
+            <span className="personaggio-ruolo" style={{ color: RUOLO_EXTRA.color }}>{RUOLO_EXTRA.label}</span>
+            <span className="personaggio-nome">{personaggio?.nome || giocatoreExtraId}</span>
+          </div>
+          <div className="personaggio-score">
+            <span className="score-big" style={{ color: bm < 0 ? '#ef4444' : bm > 0 ? '#10b981' : '#888' }}>
+              {bm > 0 ? '+' : ''}{bm.toFixed(1)}
+            </span>
+            <span className="score-sub">bonus/malus</span>
+          </div>
+          {hasBm && <span className="ms-arrow">{aperto['giocatore_extra'] ? '▲' : '▼'}</span>}
+        </div>
+        {renderBmList(bmList, 'giocatore_extra')}
       </div>
     );
   };
@@ -251,11 +342,72 @@ export default function MiaSquadra({ onModifica }) {
         </section>
       )}
 
+      {/* Selezione giocatore extra: visibile solo quando l'admin attiva il flag */}
+      {extraAttivo && !extraChiuso && (
+        <section className="section">
+          <h3 className="section-title">🎁 Scegli il tuo giocatore extra</h3>
+          <div className="iscrizione-form-box">
+            <p className="capitano-picker-hint" style={{ margin: '0 0 14px' }}>
+              Puoi aggiungere un personaggio in più tra tutti, tranne te stesso e chi è già stato preso
+              da un'altra squadra come extra.
+              {extraDeadline && (
+                <> Scegli entro <strong>{extraDeadline.toLocaleString('it-IT', { dateStyle: 'medium', timeStyle: 'short' })}</strong>,
+                altrimenti te ne verrà assegnato uno a caso.</>
+              )}
+            </p>
+            {giocatoreExtraId && (
+              <div className="capitano-banner" style={{ marginBottom: 14 }}>
+                ✓ Hai scelto <strong>{personaggi.find(p => p.id === giocatoreExtraId)?.nome || giocatoreExtraId}</strong> — puoi ancora cambiare idea finché la scelta resta aperta.
+              </div>
+            )}
+            <div className="iscrizione-cerca-box" style={{ marginBottom: 10 }}>
+              <input
+                type="text" value={cercaExtra}
+                onChange={e => setCercaExtra(e.target.value)}
+                placeholder="🔍 Cerca per nome o codice…"
+                className="iscrizione-cerca"
+              />
+              {cercaExtra && <button className="btn-ghost btn-sm" onClick={() => setCercaExtra('')}>✕</button>}
+            </div>
+            <div className="iscrizione-cards" style={{ maxHeight: 320, overflowY: 'auto' }}>
+              {risultatiExtra.length === 0 && (
+                <p className="iscrizione-empty">Nessun personaggio libero trovato.</p>
+              )}
+              {risultatiExtra.map(p => {
+                const sel = giocatoreExtraId === p.id;
+                return (
+                  <div
+                    key={p.id}
+                    className={`iscrizione-card ${sel ? 'selected' : ''} ${salvandoExtra ? 'disabled' : ''}`}
+                    onClick={() => !salvandoExtra && scegliExtra(p.id)}
+                  >
+                    <div className="iscrizione-card-info">
+                      <span className="iscrizione-card-nome">{p.nome}</span>
+                      <span className="iscrizione-card-id">{p.id}</span>
+                    </div>
+                    <div className="iscrizione-card-right">
+                      <span className="iscrizione-card-check">{sel ? '✓' : ''}</span>
+                    </div>
+                  </div>
+                );
+              })}
+            </div>
+          </div>
+        </section>
+      )}
+
+      {extraAttivo && extraChiuso && !giocatoreExtraId && (
+        <section className="section">
+          <div className="capitano-banner">⏳ Scelta chiusa: ti stiamo assegnando un giocatore extra a caso…</div>
+        </section>
+      )}
+
       {/* Formazione con bonus/malus integrati */}
       <section className="section">
         <h3 className="section-title">La tua formazione</h3>
         <div className="ms-cards">
           {RUOLI.map(r => renderPersonaggio(r))}
+          {renderExtra()}
           {renderSquadra()}
         </div>
       </section>

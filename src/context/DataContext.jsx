@@ -22,6 +22,10 @@ export const RUOLI_FORMAZIONE = [
   { key: 'amico san carlo', label: 'Amico San Carlo', emoji: '✝️',  color: '#ec4899' },
 ];
 
+// Slot extra facoltativo: un personaggio in più a scelta (o assegnato a caso
+// alla chiusura), colonna "giocatore_extra" sulla tabella giocatori.
+export const RUOLO_EXTRA = { key: 'giocatore_extra', label: 'Giocatore Extra', emoji: '🎁', color: '#8b5cf6' };
+
 async function fetchCSV(path) {
   const res = await fetch(`${BASE}${path}?t=${Date.now()}`);
   if (!res.ok) throw new Error(`Impossibile caricare ${path}`);
@@ -47,7 +51,7 @@ export function DataProvider({ children }) {
     utenti: [],
     votazioni: [],   // ora per squadra oratorio: { id_squadra, giorno, voto_base }
     bonusMalus: [],
-    impostazioni: { capitano_attivo: false, giorno_capitano: null },
+    impostazioni: { capitano_attivo: false, giorno_capitano: null, extra_attivo: false, extra_deadline: null },
     loading: true,
     error: null,
     lastUpdate: null,
@@ -76,7 +80,7 @@ export function DataProvider({ children }) {
         utenti: parseCSV(u),
         votazioni: parseCSV(v),
         bonusMalus: parseCSV(b),
-        impostazioni: impostazioniRes?.data || { capitano_attivo: false, giorno_capitano: null },
+        impostazioni: impostazioniRes?.data || { capitano_attivo: false, giorno_capitano: null, extra_attivo: false, extra_deadline: null },
         loading: false,
         error: null,
         lastUpdate: new Date(),
@@ -146,6 +150,23 @@ export function DataProvider({ children }) {
       });
       totale += totaleRuolo;
     });
+
+    // Giocatore extra (facoltativo): un personaggio in più, scelto o assegnato
+    // a caso alla chiusura. Non è mai capitano.
+    const idExtra = giocatore['giocatore_extra'];
+    if (idExtra) {
+      const scoreExtra = getPersonaggioScore(idExtra);
+      const personaggioExtra = data.personaggi.find(p => p.id === idExtra);
+      dettagli.push({
+        ruolo: 'giocatore_extra',
+        id: idExtra,
+        nome: personaggioExtra?.nome || idExtra,
+        ...scoreExtra,
+        isCapitano: false,
+        bonusCapitano: 0,
+      });
+      totale += scoreExtra.totale;
+    }
 
     const squadraOratorio = giocatore['squadra-oratorio'];
     const squadraScore = getSquadraOratorioScore(squadraOratorio);

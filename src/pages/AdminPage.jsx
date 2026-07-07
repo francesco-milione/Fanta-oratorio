@@ -137,7 +137,7 @@ function useToast() {
 // ═════════════════════════════════════════════════════════════════════════════
 export default function AdminPage() {
   const { logout } = useAuth();
-  const { personaggi } = useData();
+  const { personaggi, utenti, reload } = useData();
   const [tab, setTab] = useState('giornata');
   const { toast, show: showToast } = useToast();
 
@@ -146,6 +146,7 @@ export default function AdminPage() {
     { key: 'regolamento', label: '📋 Regolamento' },
     { key: 'voti',        label: '📊 Voti' },
     { key: 'capitano',    label: '🎖️ Capitano' },
+    { key: 'extra',       label: '🎁 Extra' },
   ];
 
   return (
@@ -169,7 +170,8 @@ export default function AdminPage() {
         {tab === 'giornata'    && <GiornataTab    personaggi={personaggi} showToast={showToast} />}
         {tab === 'regolamento' && <RegolamentoTab showToast={showToast} />}
         {tab === 'voti'        && <VotiTab        showToast={showToast} />}
-        {tab === 'capitano'    && <CapitanoTab    showToast={showToast} />}
+        {tab === 'capitano'    && <CapitanoTab    showToast={showToast} reload={reload} />}
+        {tab === 'extra'       && <ExtraTab       personaggi={personaggi} utenti={utenti} showToast={showToast} reload={reload} />}
       </div>
 
       {toast && (
@@ -1048,7 +1050,7 @@ function VotiTab({ showToast }) {
 // ─────────────────────────────────────────────────────────────────────────────
 // TAB: CAPITANO (flag globale + giorno del raddoppio punti, su Supabase)
 // ─────────────────────────────────────────────────────────────────────────────
-function CapitanoTab({ showToast }) {
+function CapitanoTab({ showToast, reload }) {
   const [impostazioni, setImpostazioni] = useState(null);
   const [loading, setLoading]           = useState(true);
   const [dbError, setDbError]           = useState(false);
@@ -1076,6 +1078,7 @@ function CapitanoTab({ showToast }) {
     if (error) { showToast('Errore salvataggio', 'err'); return; }
     setImpostazioni(prev => ({ ...prev, capitano_attivo: nuovoValore }));
     showToast(nuovoValore ? 'Bottone "Imposta capitano" ATTIVATO per tutti' : 'Bottone "Imposta capitano" disattivato');
+    reload?.();
   }
 
   async function salvaGiorno() {
@@ -1088,6 +1091,7 @@ function CapitanoTab({ showToast }) {
     if (error) { showToast('Errore salvataggio', 'err'); return; }
     setImpostazioni(prev => ({ ...prev, giorno_capitano: n }));
     showToast(n ? `Giorno del raddoppio impostato: Giornata ${n}` : 'Giorno del raddoppio rimosso');
+    reload?.();
   }
 
   if (dbError) return <SetupPanel missingTable="impostazioni" />;
@@ -1152,6 +1156,238 @@ function CapitanoTab({ showToast }) {
 }
 
 // ─────────────────────────────────────────────────────────────────────────────
+// TAB: EXTRA (flag globale + scadenza + assegnazione del "giocatore extra")
+// ─────────────────────────────────────────────────────────────────────────────
+function toLocalInputValue(iso) {
+  const d = new Date(iso);
+  const pad = n => String(n).padStart(2, '0');
+  return `${d.getFullYear()}-${pad(d.getMonth() + 1)}-${pad(d.getDate())}T${pad(d.getHours())}:${pad(d.getMinutes())}`;
+}
+
+function ExtraTab({ personaggi, utenti, showToast, reload }) {
+  const [impostazioni, setImpostazioni] = useState(null);
+  const [loading, setLoading]           = useState(true);
+  const [dbError, setDbError]           = useState(false);
+  const [deadlineInput, setDeadlineInput] = useState('');
+  const [salvando, setSalvando]         = useState(false);
+  const [giocatoriList, setGiocatoriList] = useState([]);
+  const [loadingGiocatori, setLoadingGiocatori] = useState(true);
+  const [assegnando, setAssegnando]     = useState(false);
+  const [cerca, setCerca]               = useState('');
+
+  const fetchImpostazioni = useCallback(async () => {
+    setLoading(true);
+    const { data, error } = await supabase.from('impostazioni').select('*').eq('id', 1).maybeSingle();
+    setLoading(false);
+    if (error) { setDbError(true); return; }
+    const row = data || { id: 1, extra_attivo: false, extra_deadline: null };
+    setImpostazioni(row);
+    setDeadlineInput(row.extra_deadline ? toLocalInputValue(row.extra_deadline) : '');
+  }, []);
+
+  const fetchGiocatori = useCallback(async () => {
+    setLoadingGiocatori(true);
+    const { data, error } = await supabase.from('giocatori').select('*').order('created_at', { ascending: true });
+    setLoadingGiocatori(false);
+    if (!error) setGiocatoriList(data || []);
+  }, []);
+
+  useEffect(() => { fetchImpostazioni(); fetchGiocatori(); }, [fetchImpostazioni, fetchGiocatori]);
+
+  async function toggleAttivo() {
+    if (!impostazioni) return;
+    setSalvando(true);
+    const nuovoValore = !impostazioni.extra_attivo;
+    const { error } = await supabase.from('impostazioni').update({ extra_attivo: nuovoValore }).eq('id', 1);
+    setSalvando(false);
+    if (error) { showToast('Errore salvataggio', 'err'); return; }
+    setImpostazioni(prev => ({ ...prev, extra_attivo: nuovoValore }));
+    showToast(nuovoValore ? 'Scelta "Giocatore extra" ATTIVATA per tutti' : 'Scelta "Giocatore extra" disattivata');
+    reload?.();
+  }
+
+  async function salvaDeadline(iso) {
+    setSalvando(true);
+    const { error } = await supabase.from('impostazioni').update({ extra_deadline: iso }).eq('id', 1);
+    setSalvando(false);
+    if (error) { showToast('Errore salvataggio', 'err'); return; }
+    setImpostazioni(prev => ({ ...prev, extra_deadline: iso }));
+    showToast(iso ? `Chiusura impostata: ${new Date(iso).toLocaleString('it-IT')}` : 'Chiusura rimossa');
+    reload?.();
+  }
+
+  function impostaDomaniAlleSedici() {
+    const d = new Date();
+    d.setDate(d.getDate() + 1);
+    d.setHours(16, 0, 0, 0);
+    setDeadlineInput(toLocalInputValue(d.toISOString()));
+    salvaDeadline(d.toISOString());
+  }
+
+  // Assegna un giocatore extra casuale a tutte le squadre che non hanno ancora
+  // scelto, evitando: il proprio personaggio, chi è già nella formazione
+  // titolare, e chi è già stato preso da un'altra squadra (anche nella stessa
+  // passata di assegnazione).
+  async function assegnaMancanti() {
+    if (assegnando) return;
+    setAssegnando(true);
+    const { data: freschi, error: errG } = await supabase.from('giocatori').select('*');
+    if (errG) { setAssegnando(false); showToast('Errore lettura squadre', 'err'); return; }
+
+    const mancanti = (freschi || []).filter(g => !g.giocatore_extra);
+    if (mancanti.length === 0) {
+      setAssegnando(false);
+      showToast('Tutte le squadre hanno già un giocatore extra');
+      return;
+    }
+
+    const presiGlobali = new Set((freschi || []).map(g => g.giocatore_extra).filter(Boolean));
+    const daAggiornare = [];
+    for (const g of mancanti) {
+      const utenteBase = utenti.find(u => u.codice?.trim().toUpperCase() === g.codice?.trim().toUpperCase());
+      const idSelf = utenteBase?.id_personaggio;
+      const propri = new Set([g.educatore, g.animatore1, g.animatore2, g['pre animatore'], g['amico san carlo']].filter(Boolean));
+      const pool = personaggi.filter(p => p.id !== idSelf && !propri.has(p.id) && !presiGlobali.has(p.id));
+      if (pool.length === 0) continue;
+      const scelto = pool[Math.floor(Math.random() * pool.length)];
+      presiGlobali.add(scelto.id);
+      daAggiornare.push({ codice: g.codice, giocatore_extra: scelto.id });
+    }
+
+    let errori = 0;
+    for (const u of daAggiornare) {
+      const { error } = await supabase.from('giocatori').update({ giocatore_extra: u.giocatore_extra }).eq('codice', u.codice);
+      if (error) errori++;
+    }
+    setAssegnando(false);
+    if (daAggiornare.length === 0) {
+      showToast('Nessun personaggio libero da assegnare', 'err');
+    } else if (errori > 0) {
+      showToast(`Assegnati ${daAggiornare.length - errori}/${daAggiornare.length}, ${errori} errori`, 'err');
+    } else {
+      showToast(`Giocatore extra assegnato a ${daAggiornare.length} squadre!`);
+    }
+    fetchGiocatori();
+    reload?.();
+  }
+
+  if (dbError) return <SetupPanel missingTable="impostazioni" />;
+  if (loading) return <div style={{ padding: 40, textAlign: 'center', color: '#475569' }}>Caricamento...</div>;
+
+  const cercaLower = cerca.toLowerCase();
+  const listaFiltrata = giocatoriList.filter(g =>
+    !cercaLower ||
+    g['nome-squadra']?.toLowerCase().includes(cercaLower) ||
+    g.proprietario?.toLowerCase().includes(cercaLower) ||
+    g.codice?.toLowerCase().includes(cercaLower)
+  );
+  const nSenzaScelta = giocatoriList.filter(g => !g.giocatore_extra).length;
+
+  return (
+    <div style={{ display: 'flex', flexDirection: 'column', gap: 16 }}>
+      <div style={S.sectionCard}>
+        <div style={S.sectionHeader}>
+          <span style={{ fontWeight: 700, fontSize: 15 }}>🎁 Scelta del giocatore extra</span>
+        </div>
+        <div style={{ padding: 20, display: 'flex', flexDirection: 'column', gap: 16 }}>
+          <div style={{ color: '#94a3b8', fontSize: 13, lineHeight: 1.5 }}>
+            Quando questo flag è <strong style={{ color: '#e2e8f0' }}>attivo</strong>, ogni squadra vede
+            il bottone per scegliere un personaggio in più tra tutti quelli ancora liberi (tranne se
+            stesso e chi è già stato preso da un'altra squadra come extra).
+            Disattivalo quando vuoi bloccare la scelta.
+          </div>
+          <div style={{ display: 'flex', alignItems: 'center', gap: 14 }}>
+            <button
+              style={{
+                ...S.btnPrimary,
+                background: impostazioni?.extra_attivo ? '#22c55e' : '#334155',
+                color: impostazioni?.extra_attivo ? '#0f172a' : '#94a3b8',
+              }}
+              disabled={salvando}
+              onClick={toggleAttivo}
+            >
+              {impostazioni?.extra_attivo ? '✅ Attivo — clicca per disattivare' : '⭕ Disattivato — clicca per attivare'}
+            </button>
+          </div>
+        </div>
+      </div>
+
+      <div style={S.sectionCard}>
+        <div style={S.sectionHeader}>
+          <span style={{ fontWeight: 700, fontSize: 15 }}>⏰ Chiusura della scelta</span>
+        </div>
+        <div style={{ padding: 20, display: 'flex', flexDirection: 'column', gap: 12 }}>
+          <div style={{ color: '#94a3b8', fontSize: 13, lineHeight: 1.5 }}>
+            Dopo questa data/ora, chi non ha ancora scelto riceve automaticamente un giocatore extra
+            casuale (al primo caricamento dell'app), oppure puoi assegnarlo subito qui sotto.
+          </div>
+          <div style={{ display: 'flex', gap: 10, alignItems: 'center', flexWrap: 'wrap' }}>
+            <span style={S.label}>Chiusura:</span>
+            <input
+              type="datetime-local"
+              value={deadlineInput}
+              onChange={e => setDeadlineInput(e.target.value)}
+              style={{ ...S.select, width: 220 }}
+            />
+            <button
+              style={S.btnPrimary}
+              disabled={salvando || !deadlineInput}
+              onClick={() => salvaDeadline(new Date(deadlineInput).toISOString())}
+            >
+              Salva
+            </button>
+            <button style={S.btnOutline} disabled={salvando} onClick={impostaDomaniAlleSedici}>
+              Imposta domani alle 16:00
+            </button>
+            {impostazioni?.extra_deadline && (
+              <span style={{ color: '#4ade80', fontSize: 13 }}>
+                ✓ Attuale: {new Date(impostazioni.extra_deadline).toLocaleString('it-IT')}
+              </span>
+            )}
+          </div>
+        </div>
+      </div>
+
+      <div style={S.sectionCard}>
+        <div style={S.sectionHeader}>
+          <span style={{ fontWeight: 700, fontSize: 15 }}>
+            🎲 Assegnazione manuale ({nSenzaScelta} squadre senza scelta)
+          </span>
+          <button style={S.btnGreen} disabled={assegnando || nSenzaScelta === 0} onClick={assegnaMancanti}>
+            {assegnando ? '⏳ Assegno...' : `Assegna a chi non ha scelto`}
+          </button>
+        </div>
+        <div style={{ padding: '12px 16px' }}>
+          <input
+            type="text" placeholder="🔍 Cerca squadra, proprietario o codice…"
+            value={cerca} onChange={e => setCerca(e.target.value)}
+            style={{ ...S.select, width: '100%', marginBottom: 10 }}
+          />
+          {loadingGiocatori ? (
+            <div style={{ padding: 20, textAlign: 'center', color: '#475569' }}>Caricamento...</div>
+          ) : listaFiltrata.length === 0 ? (
+            <div style={{ padding: 20, textAlign: 'center', color: '#475569' }}>Nessuna squadra trovata</div>
+          ) : (
+            listaFiltrata.map(g => {
+              const p = g.giocatore_extra ? personaggi.find(x => x.id === g.giocatore_extra) : null;
+              return (
+                <div key={g.codice} style={S.bonusItem}>
+                  <span style={{ fontWeight: 600, minWidth: 160, fontSize: 14 }}>{g['nome-squadra']}</span>
+                  <span style={{ color: '#94a3b8', fontSize: 13, minWidth: 120 }}>{g.proprietario}</span>
+                  <span style={{ flex: 1, fontSize: 13, color: g.giocatore_extra ? '#4ade80' : '#f87171' }}>
+                    {g.giocatore_extra ? `✓ ${p?.nome || g.giocatore_extra}` : '— nessuna scelta'}
+                  </span>
+                </div>
+              );
+            })
+          )}
+        </div>
+      </div>
+    </div>
+  );
+}
+
+// ─────────────────────────────────────────────────────────────────────────────
 // Pannello setup Supabase (tabelle mancanti)
 // ─────────────────────────────────────────────────────────────────────────────
 function SetupPanel({ missingTable }) {
@@ -1192,6 +1428,11 @@ CREATE TABLE IF NOT EXISTS impostazioni (
 INSERT INTO impostazioni (id, capitano_attivo, giorno_capitano)
 VALUES (1, FALSE, NULL)
 ON CONFLICT (id) DO NOTHING;
+
+-- Funzionalità "Giocatore extra": colonna su giocatori + impostazioni globali
+ALTER TABLE giocatori    ADD COLUMN IF NOT EXISTS giocatore_extra TEXT;
+ALTER TABLE impostazioni ADD COLUMN IF NOT EXISTS extra_attivo    BOOLEAN NOT NULL DEFAULT FALSE;
+ALTER TABLE impostazioni ADD COLUMN IF NOT EXISTS extra_deadline  TIMESTAMPTZ;
 
 -- Disabilita RLS (o configura le policy che preferisci)
 ALTER TABLE regolamento       DISABLE ROW LEVEL SECURITY;
