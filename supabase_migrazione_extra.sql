@@ -33,7 +33,9 @@ ON CONFLICT (id) DO NOTHING;
 -- extra_deadline:  data/ora di chiusura della scelta. Dopo questo momento,
 --                  al primo caricamento dell'app ogni squadra senza scelta
 --                  riceve automaticamente un giocatore extra casuale
---                  (tra quelli ancora liberi).
+--                  (tra tutti, tranne il proprio personaggio e chi ha già
+--                  nella propria formazione titolare — nessuna esclusività
+--                  tra squadre diverse).
 ALTER TABLE impostazioni ADD COLUMN IF NOT EXISTS extra_attivo    BOOLEAN NOT NULL DEFAULT FALSE;
 ALTER TABLE impostazioni ADD COLUMN IF NOT EXISTS extra_deadline  TIMESTAMPTZ;
 

@@ -1225,9 +1225,8 @@ function ExtraTab({ personaggi, utenti, showToast, reload }) {
   }
 
   // Assegna un giocatore extra casuale a tutte le squadre che non hanno ancora
-  // scelto, evitando: il proprio personaggio, chi è già nella formazione
-  // titolare, e chi è già stato preso da un'altra squadra (anche nella stessa
-  // passata di assegnazione).
+  // scelto, evitando solo: il proprio personaggio e chi è già nella propria
+  // formazione titolare (non c'è esclusività tra squadre diverse).
   async function assegnaMancanti() {
     if (assegnando) return;
     setAssegnando(true);
@@ -1241,16 +1240,14 @@ function ExtraTab({ personaggi, utenti, showToast, reload }) {
       return;
     }
 
-    const presiGlobali = new Set((freschi || []).map(g => g.giocatore_extra).filter(Boolean));
     const daAggiornare = [];
     for (const g of mancanti) {
       const utenteBase = utenti.find(u => u.codice?.trim().toUpperCase() === g.codice?.trim().toUpperCase());
       const idSelf = utenteBase?.id_personaggio;
       const propri = new Set([g.educatore, g.animatore1, g.animatore2, g['pre animatore'], g['amico san carlo']].filter(Boolean));
-      const pool = personaggi.filter(p => p.id !== idSelf && !propri.has(p.id) && !presiGlobali.has(p.id));
+      const pool = personaggi.filter(p => p.id !== idSelf && !propri.has(p.id));
       if (pool.length === 0) continue;
       const scelto = pool[Math.floor(Math.random() * pool.length)];
-      presiGlobali.add(scelto.id);
       daAggiornare.push({ codice: g.codice, giocatore_extra: scelto.id });
     }
 
@@ -1292,9 +1289,9 @@ function ExtraTab({ personaggi, utenti, showToast, reload }) {
         <div style={{ padding: 20, display: 'flex', flexDirection: 'column', gap: 16 }}>
           <div style={{ color: '#94a3b8', fontSize: 13, lineHeight: 1.5 }}>
             Quando questo flag è <strong style={{ color: '#e2e8f0' }}>attivo</strong>, ogni squadra vede
-            il bottone per scegliere un personaggio in più tra tutti quelli ancora liberi (tranne se
-            stesso e chi è già stato preso da un'altra squadra come extra).
-            Disattivalo quando vuoi bloccare la scelta.
+            il bottone per scegliere un personaggio in più tra tutti (tranne se stesso e chi ha già
+            nella propria formazione titolare). Più squadre possono scegliere lo stesso personaggio,
+            non c'è esclusività. Disattivalo quando vuoi bloccare la scelta.
           </div>
           <div style={{ display: 'flex', alignItems: 'center', gap: 14 }}>
             <button

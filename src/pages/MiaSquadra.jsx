@@ -15,7 +15,7 @@ const RUOLI = [
 
 export default function MiaSquadra({ onModifica }) {
   const { utente } = useAuth();
-  const { personaggi, giocatori, classifica, bonusMalus, giorni, getPersonaggioScore, impostazioni, reload } = useData();
+  const { personaggi, classifica, bonusMalus, giorni, getPersonaggioScore, impostazioni, reload } = useData();
   const [aperto, setAperto] = useState({});
   const [salvandoCapitano, setSalvandoCapitano] = useState(false);
   const [salvandoExtra, setSalvandoExtra] = useState(false);
@@ -33,10 +33,10 @@ export default function MiaSquadra({ onModifica }) {
     if (!error) reload();
   }
 
-  // ── Giocatore extra: un personaggio in più a scelta, tra tutti quelli
-  // ancora liberi (esclude se stesso, chi è già nella propria formazione e
-  // chi è già stato preso da un'altra squadra come extra). Se non scelto
-  // entro la chiusura, ne viene assegnato uno a caso automaticamente.
+  // ── Giocatore extra: un personaggio in più a scelta, tra tutti tranne se
+  // stesso e chi è già nella propria formazione (altre squadre possono avere
+  // lo stesso extra, non c'è esclusività). Se non scelto entro la chiusura,
+  // ne viene assegnato uno a caso automaticamente.
   const extraAttivo = !!impostazioni?.extra_attivo;
   const extraDeadline = impostazioni?.extra_deadline ? new Date(impostazioni.extra_deadline) : null;
   const extraChiuso = !!(extraDeadline && new Date() > extraDeadline);
@@ -47,17 +47,10 @@ export default function MiaSquadra({ onModifica }) {
       .filter(Boolean)
   ), [utente]);
 
-  const presiDaAltri = useMemo(() => new Set(
-    (giocatori || [])
-      .filter(g => g.codice?.trim().toUpperCase() !== utente?.codice?.trim().toUpperCase() && g.giocatore_extra)
-      .map(g => g.giocatore_extra)
-  ), [giocatori, utente]);
-
   const poolExtra = useMemo(() => personaggi.filter(p =>
     p.id !== utente?.id_personaggio &&
-    !propriIds.has(p.id) &&
-    !presiDaAltri.has(p.id)
-  ), [personaggi, propriIds, presiDaAltri, utente]);
+    !propriIds.has(p.id)
+  ), [personaggi, propriIds, utente]);
 
   const risultatiExtra = useMemo(() => poolExtra.filter(p =>
     p.nome.toLowerCase().includes(cercaExtra.toLowerCase()) || p.id.toLowerCase().includes(cercaExtra.toLowerCase())
@@ -348,8 +341,7 @@ export default function MiaSquadra({ onModifica }) {
           <h3 className="section-title">🎁 Scegli il tuo giocatore extra</h3>
           <div className="iscrizione-form-box">
             <p className="capitano-picker-hint" style={{ margin: '0 0 14px' }}>
-              Puoi aggiungere un personaggio in più tra tutti, tranne te stesso e chi è già stato preso
-              da un'altra squadra come extra.
+              Puoi aggiungere un personaggio in più tra tutti, tranne te stesso e chi hai già nella tua squadra.
               {extraDeadline && (
                 <> Scegli entro <strong>{extraDeadline.toLocaleString('it-IT', { dateStyle: 'medium', timeStyle: 'short' })}</strong>,
                 altrimenti te ne verrà assegnato uno a caso.</>
