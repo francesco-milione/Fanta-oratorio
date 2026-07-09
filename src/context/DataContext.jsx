@@ -237,6 +237,30 @@ export function DataProvider({ children }) {
       totale += amici[0].score;
     }
 
+    // Capitano ideale: tra i 5 titolari appena scelti, si designa capitano chi
+    // porta il bonus più alto nella "giornata capitano" impostata dall'admin
+    // (stessa regola dei giocatori reali: i suoi punti di quel giorno vengono
+    // raddoppiati). Se nessuno ha un bonus positivo in quel giorno, o la
+    // giornata capitano non è impostata, non si assegna nessun capitano.
+    const giornoCap = data.impostazioni?.giorno_capitano;
+    if (giornoCap != null) {
+      let miglioreCapitano = null;
+      let miglioreBonus = 0;
+      dettagli.forEach(d => {
+        const bonus = getBonusCapitanoGiorno(d.id);
+        if (bonus > miglioreBonus) {
+          miglioreBonus = bonus;
+          miglioreCapitano = d;
+        }
+      });
+      if (miglioreCapitano) {
+        miglioreCapitano.isCapitano = true;
+        miglioreCapitano.bonusCapitano = miglioreBonus;
+        miglioreCapitano.score += miglioreBonus;
+        totale += miglioreBonus;
+      }
+    }
+
     // Migliore squadra oratorio tra le 4
     let squadraOratorio = null;
     let squadraScore = null;
@@ -249,8 +273,22 @@ export function DataProvider({ children }) {
     });
     if (squadraScore) totale += squadraScore.totale;
 
+    // Giocatore extra ideale: il migliore personaggio non già presente in
+    // formazione, contando i suoi punti solo dalla giornata "extra_giorno_da"
+    // impostata dall'admin (stessa regola dello slot extra reale).
+    const idsUsati = new Set(dettagli.map(d => d.id));
+    const giornoDa = data.impostazioni?.extra_giorno_da;
+    const migliorExtra = data.personaggi
+      .filter(p => !idsUsati.has(p.id))
+      .map(p => ({ ...p, score: getPersonaggioScoreDaGiorno(p.id, giornoDa).totale }))
+      .sort((a, b) => b.score - a.score)[0];
+    if (migliorExtra) {
+      dettagli.push({ ruoloKey: RUOLO_EXTRA.key, ruoloLabel: RUOLO_EXTRA.label, ...migliorExtra });
+      totale += migliorExtra.score;
+    }
+
     return { dettagli, totale, squadraOratorio, squadraScore };
-  }, [data.personaggi, getPersonaggioScore, getSquadraOratorioScore]);
+  }, [data.personaggi, data.impostazioni, getPersonaggioScore, getPersonaggioScoreDaGiorno, getSquadraOratorioScore, getBonusCapitanoGiorno]);
 
   // Giorni dai voti squadra e bonus/malus (escluse le squadre stesse dai bm)
   const giorni = React.useMemo(() => {

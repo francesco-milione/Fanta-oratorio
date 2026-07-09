@@ -127,7 +127,7 @@ export default function Classifica() {
                   <div key={i} className="cl-membro">
                     <div className="cl-membro-info">
                       <span className="cl-membro-ruolo">{d.ruoloLabel}</span>
-                      <span className="cl-membro-nome">{d.nome}</span>
+                      <span className="cl-membro-nome">{d.nome}{d.isCapitano ? ' ⭐' : ''}</span>
                     </div>
                     <div className="cl-membro-score">
                       <span className="cl-membro-pts">{d.score.toFixed(1)}</span>
