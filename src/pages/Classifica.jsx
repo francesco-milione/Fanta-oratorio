@@ -12,12 +12,52 @@ export default function Classifica() {
 
   const toggle = (codice) => setExpanded(prev => prev === codice ? null : codice);
 
+  const openAndScroll = (codice) => {
+    setExpanded(codice);
+    setTimeout(() => {
+      document.getElementById(`cl-row-${codice}`)?.scrollIntoView({ behavior: 'smooth', block: 'center' });
+    }, 50);
+  };
+
+  const podio = classifica.slice(0, 3);
+
   return (
     <div className="page">
       <div className="page-header">
         <h2>🏆 Classifica</h2>
         <p className="page-subtitle">{classifica.length} squadre in gara</p>
       </div>
+
+      {/* Podio dei primi 3 */}
+      {podio.length > 0 && (
+        <div className="podio-wrap">
+          {podio.map((g, i) => {
+            const rank = ['gold', 'silver', 'bronze'][i];
+            const medal = MEDAL[i];
+            const sqInfo = SQUADRE_LABEL[g['squadra-oratorio']];
+            const isMine = g.codice === utente?.codice;
+            return (
+              <div
+                key={g.codice}
+                className={`podio-item ${rank} ${isMine ? 'mine' : ''}`}
+                onClick={() => openAndScroll(g.codice)}
+              >
+                <span className="podio-medal">{medal}</span>
+                <div
+                  className="podio-avatar"
+                  style={sqInfo ? { background: sqInfo.colore + '22', borderColor: sqInfo.colore } : { borderColor: 'var(--viola-mid)' }}
+                >
+                  <span>{sqInfo ? sqInfo.emoji : '🏆'}</span>
+                </div>
+                <span className="podio-pos">{i + 1}° posto</span>
+                <span className="podio-nome">{g['nome-squadra']}</span>
+                <span className="podio-ruolo">{g.proprietario}{isMine ? ' · TU' : ''}</span>
+                <span className="podio-pts">{g.punteggio.toFixed(1)}</span>
+              </div>
+            );
+          })}
+        </div>
+      )}
 
       <div className="classifica-list">
         {classifica.map((g) => {
@@ -28,6 +68,7 @@ export default function Classifica() {
           return (
             <div
               key={g.codice}
+              id={`cl-row-${g.codice}`}
               className={`classifica-row ${isMine ? 'mine' : ''} ${isOpen ? 'open' : ''}`}
               onClick={() => toggle(g.codice)}
             >

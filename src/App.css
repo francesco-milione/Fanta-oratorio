@@ -1556,6 +1556,52 @@ body {
 :root { --text-muted: #9ca3af; }
 
 /* ===== PAGINA PERSONAGGI ===== */
+
+/* Podio primi 3 */
+.podio-wrap {
+  display: flex;
+  align-items: flex-end;
+  gap: 10px;
+  padding: 4px 16px 22px;
+}
+.podio-item {
+  flex: 1;
+  min-width: 0;
+  position: relative;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  text-align: center;
+  border-radius: var(--radius);
+  padding: 20px 8px 14px;
+  cursor: pointer;
+  transition: transform 0.15s, box-shadow 0.15s;
+  box-shadow: var(--shadow);
+}
+.podio-item:hover { transform: translateY(-3px); box-shadow: var(--shadow-lg); }
+
+.podio-item.gold   { order: 2; background: linear-gradient(160deg, #fef3c7 0%, #fde68a 100%); border: 2px solid var(--giallo); padding-top: 26px; z-index: 2; }
+.podio-item.silver { order: 1; background: linear-gradient(160deg, #f3f4f6 0%, #e5e7eb 100%); border: 2px solid #9ca3af; margin-top: 22px; }
+.podio-item.bronze { order: 3; background: linear-gradient(160deg, #fde9d9 0%, #f3c69f 100%); border: 2px solid #c2703d; margin-top: 32px; }
+
+.podio-medal { position: absolute; top: -14px; font-size: 1.5rem; filter: drop-shadow(0 2px 3px rgba(0,0,0,0.2)); }
+.podio-avatar {
+  width: 52px; height: 52px;
+  border-radius: 50%;
+  border: 2px solid;
+  display: flex; align-items: center; justify-content: center;
+  font-size: 1.5rem;
+  background: #fff;
+  margin-bottom: 8px;
+}
+.podio-item.gold .podio-avatar { width: 64px; height: 64px; font-size: 1.8rem; }
+.podio-pos { font-size: 0.65rem; font-weight: 800; text-transform: uppercase; letter-spacing: 0.05em; opacity: 0.65; margin-bottom: 2px; }
+.podio-nome { font-size: 0.85rem; font-weight: 800; color: var(--text); line-height: 1.2; }
+.podio-ruolo { font-size: 0.68rem; font-weight: 700; margin-top: 2px; }
+.podio-pts { font-size: 1.05rem; font-weight: 900; color: var(--viola-mid); margin-top: 6px; }
+.podio-item.gold .podio-pts { font-size: 1.25rem; color: #92400e; }
+.podio-item.mine { outline: 3px solid var(--viola); outline-offset: 2px; }
+
 .migliore-banner {
   display: flex;
   align-items: center;
@@ -1589,6 +1635,8 @@ body {
 .pg-row:hover { border-color: var(--viola-mid); box-shadow: 0 2px 12px rgba(91,33,182,0.08); }
 .pg-row.open { border-color: var(--viola-mid); }
 .pg-row.migliore { border-color: var(--giallo); background: linear-gradient(135deg, #fffbeb, #fff); }
+.pg-row.secondo  { border-color: #9ca3af; background: linear-gradient(135deg, #f9fafb, #fff); }
+.pg-row.terzo    { border-color: #c2703d; background: linear-gradient(135deg, #fdf1e9, #fff); }
 
 .pg-main {
   display: flex;

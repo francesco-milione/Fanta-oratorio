@@ -40,6 +40,7 @@ export default function Personaggi() {
   }, [personaggi, votazioni, bonusMalus, giorni]);
 
   const miglioreAssoluto = ranking[0] ?? null;
+  const podio = ranking.slice(0, 3);
 
   const personaggioAperto = ranking.find(p => p.id === selezionato);
 
@@ -47,10 +48,10 @@ export default function Personaggi() {
     setSelezionato(prev => prev === id ? null : id);
   };
 
-  const goToMigliore = () => {
-    setSelezionato(miglioreAssoluto?.id ?? null);
+  const selectAndScroll = (id) => {
+    setSelezionato(id);
     setTimeout(() => {
-      document.getElementById('personaggi-list')?.scrollTo({ top: 0, behavior: 'smooth' });
+      document.getElementById('personaggi-list')?.scrollIntoView({ behavior: 'smooth', block: 'start' });
     }, 50);
   };
 
@@ -61,16 +62,30 @@ export default function Personaggi() {
         <p className="page-subtitle">Riepilogo punteggi per ogni personaggio</p>
       </div>
 
-      {/* Card migliore assoluto */}
-      {miglioreAssoluto && (
-        <div className="migliore-banner" onClick={goToMigliore}>
-          <div className="migliore-corona">👑</div>
-          <div className="migliore-info">
-            <span className="migliore-label">Migliore in classifica</span>
-            <span className="migliore-nome">{miglioreAssoluto.nome}</span>
-            <span className="migliore-ruolo">{getRuoloCfg(miglioreAssoluto.ruolo).label}</span>
-          </div>
-          <div className="migliore-score">{miglioreAssoluto.totaleAssoluto.toFixed(1)}</div>
+      {/* Podio dei primi 3 */}
+      {podio.length > 0 && (
+        <div className="podio-wrap">
+          {podio.map((p, i) => {
+            const cfg = getRuoloCfg(p.ruolo);
+            const rank = ['gold', 'silver', 'bronze'][i];
+            const medal = ['🥇', '🥈', '🥉'][i];
+            return (
+              <div
+                key={p.id}
+                className={`podio-item ${rank}`}
+                onClick={() => selectAndScroll(p.id)}
+              >
+                <span className="podio-medal">{medal}</span>
+                <div className="podio-avatar" style={{ background: cfg.color + '22', borderColor: cfg.color }}>
+                  <span>{cfg.emoji}</span>
+                </div>
+                <span className="podio-pos">{i + 1}° posto</span>
+                <span className="podio-nome">{p.nome}</span>
+                <span className="podio-ruolo" style={{ color: cfg.color }}>{cfg.label}</span>
+                <span className="podio-pts">{p.totaleAssoluto.toFixed(1)}</span>
+              </div>
+            );
+          })}
         </div>
       )}
 
@@ -79,12 +94,12 @@ export default function Personaggi() {
         {ranking.map((p, i) => {
           const cfg = getRuoloCfg(p.ruolo);
           const isOpen = selezionato === p.id;
-          const isMigliore = i === 0;
+          const posClass = i === 0 ? 'migliore' : i === 1 ? 'secondo' : i === 2 ? 'terzo' : '';
 
           return (
             <div
               key={p.id}
-              className={`pg-row ${isOpen ? 'open' : ''} ${isMigliore ? 'migliore' : ''}`}
+              className={`pg-row ${isOpen ? 'open' : ''} ${posClass}`}
               onClick={() => handleSelect(p.id)}
             >
               {/* Riga principale */}
